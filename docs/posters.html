@@ -329,6 +329,72 @@
   .deco-2 { width: 300px; height: 300px; background: #ff6b6b; bottom: 100px; left: -80px; }
   .deco-3 { width: 200px; height: 200px; background: #07c160; top: 300px; right: 40px; }
   .deco-4 { width: 350px; height: 350px; background: #cc5de8; bottom: -100px; right: -100px; }
+
+  /* === POSTER 5: Default Amounts === */
+  .page-5 { background: linear-gradient(160deg, #f8f9fa 0%, #e8fdf9 100%); }
+  .page-5 .deco-1 { background: #14b8a6; }
+  .page-5 .deco-2 { background: #14b8a6; }
+  .page-5 .deco-3 { background: #14b8a6; }
+
+  .title-5 {
+    position: absolute; top: 220px; left: 80px;
+  }
+  .title-5 h1 { font-size: 64px; font-weight: 700; color: #1a1a2e; line-height: 1.1; letter-spacing: -2px; }
+  .title-5 h1 span { color: #14b8a6; }
+  .title-5 p { font-size: 22px; color: #666; margin-top: 20px; font-weight: 300; line-height: 1.6; }
+
+  .prototype-5 {
+    position: absolute; top: 480px; left: 50%; transform: translateX(-50%);
+    width: 820px;
+    background: white;
+    border-radius: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+  .proto-default-header {
+    background: linear-gradient(135deg, #14b8a6, #2dd4bf);
+    padding: 28px 32px; color: white;
+  }
+  .proto-default-header h3 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .proto-default-header p { font-size: 14px; opacity: 0.85; }
+
+  .proto-default-body { padding: 24px 32px; }
+  .proto-default-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0; border-bottom: 1px solid #f5f5f5;
+  }
+  .proto-default-row:last-child { border-bottom: none; }
+  .proto-default-cat { display: flex; align-items: center; gap: 14px; }
+  .proto-default-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; background: #f0fdfa;
+  }
+  .proto-default-name { font-size: 16px; color: #333; font-weight: 500; }
+  .proto-default-amount {
+    font-size: 20px; font-weight: 700; color: #14b8a6;
+    background: #f0fdfa; padding: 6px 16px; border-radius: 10px;
+  }
+  .proto-default-hint {
+    font-size: 12px; color: #999; margin-top: 2px;
+  }
+
+  .features-5 {
+    position: absolute; bottom: 80px; left: 80px; right: 80px;
+    display: flex; gap: 24px;
+  }
+  .feat-5 {
+    flex: 1; background: white; border-radius: 20px; padding: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .feat-5-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; background: #f0fdfa;
+  }
+  .feat-5-text h4 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 4px; }
+  .feat-5-text p { font-size: 13px; color: #999; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -540,6 +606,86 @@
     <div class="feat-4">
       <div class="feat-4-icon">🔒</div>
       <div class="feat-4-text"><h4>默认保护</h4><p>默认账本不可删除</p></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- POSTER 5: Default Amounts -->
+<div class="page page-5">
+  <div class="deco-circle deco-1"></div>
+  <div class="deco-circle deco-2"></div>
+  <div class="deco-circle deco-3"></div>
+
+  <div class="title-5">
+    <h1>常用支出<br><span>一键填入</span></h1>
+    <p>车贷、房贷、租金…设置默认金额<br>选择分类自动填入，无需重复输入</p>
+  </div>
+
+  <div class="prototype-5">
+    <div class="proto-default-header">
+      <h3>⚡ 分类默认金额</h3>
+      <p>选中分类，金额自动填入记账页</p>
+    </div>
+    <div class="proto-default-body">
+      <div class="proto-default-row">
+        <div class="proto-default-cat">
+          <div class="proto-default-icon">🚗</div>
+          <div><div class="proto-default-name">车贷</div><div class="proto-default-hint">每月固定支出</div></div>
+        </div>
+        <div class="proto-default-amount">￥3,000.00</div>
+      </div>
+      <div class="proto-default-row">
+        <div class="proto-default-cat">
+          <div class="proto-default-icon">🏠</div>
+          <div><div class="proto-default-name">房贷</div><div class="proto-default-hint">每月固定支出</div></div>
+        </div>
+        <div class="proto-default-amount">￥5,000.00</div>
+      </div>
+      <div class="proto-default-row">
+        <div class="proto-default-cat">
+          <div class="proto-default-icon">🏘️</div>
+          <div><div class="proto-default-name">租金</div><div class="proto-default-hint">每月固定支出</div></div>
+        </div>
+        <div class="proto-default-amount">￥2,500.00</div>
+      </div>
+      <div class="proto-default-row">
+        <div class="proto-default-cat">
+          <div class="proto-default-icon">🛡️</div>
+          <div><div class="proto-default-name">保险</div><div class="proto-default-hint">年度平摊</div></div>
+        </div>
+        <div class="proto-default-amount">￥416.67</div>
+      </div>
+      <div class="proto-default-row">
+        <div class="proto-default-cat">
+          <div class="proto-default-icon">📱</div>
+          <div><div class="proto-default-name">话费</div><div class="proto-default-hint">每月固定</div></div>
+        </div>
+        <div class="proto-default-amount">￥128.00</div>
+      </div>
+      <div class="proto-default-row">
+        <div class="proto-default-cat">
+          <div class="proto-default-icon">🐱</div>
+          <div><div class="proto-default-name">宠物</div><div class="proto-default-hint">每月预估</div></div>
+        </div>
+        <div class="proto-default-amount">￥300.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="features-5">
+    <div class="feat-5">
+      <div class="feat-5-icon">⚡</div>
+      <div class="feat-5-text"><h4>自动填入</h4><p>选择分类后金额自动填入键盘</p></div>
+    </div>
+    <div class="feat-5">
+      <div class="feat-5-icon">✏️</div>
+      <div class="feat-5-text"><h4>随时修改</h4><p>默认金额可在分类管理页编辑</p></div>
+    </div>
+    <div class="feat-5">
+      <div class="feat-5-icon">🔢</div>
+      <div class="feat-5-text"><h4>灵活调整</h4><p>填入后仍可修改或追加运算</p></div>
     </div>
   </div>
 </div>
