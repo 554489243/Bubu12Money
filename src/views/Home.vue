@@ -238,12 +238,18 @@ async function renderCharts() {
     stats.forEach(v => total += v)
     const pieData: { name: string; value: number; itemStyle: { color: string } }[] = []
     const legendData: typeof expenseCategoryStats.value = []
+    // 按父分类聚合
+    const parentMap = new Map<number, number>()
     stats.forEach((amount, categoryId) => {
-      const cat = categoryStore.getById(categoryId)
+      const parentId = categoryStore.getParentId(categoryId)
+      parentMap.set(parentId, (parentMap.get(parentId) || 0) + amount)
+    })
+    parentMap.forEach((amount, parentId) => {
+      const cat = categoryStore.getById(parentId)
       if (cat && amount > 0) {
         const color = getCategoryColor(cat.name).bg
         pieData.push({ name: cat.name, value: amount, itemStyle: { color } })
-        legendData.push({ categoryId, name: `${cat.icon} ${cat.name}`, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
+        legendData.push({ categoryId: parentId, name: `${cat.icon} ${cat.name}`, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
       }
     })
     expenseCategoryStats.value = legendData.sort((a, b) => b.amount - a.amount)
@@ -261,12 +267,18 @@ async function renderCharts() {
     stats.forEach(v => total += v)
     const pieData: { name: string; value: number; itemStyle: { color: string } }[] = []
     const legendData: typeof incomeCategoryStats.value = []
+    // 按父分类聚合
+    const parentMap = new Map<number, number>()
     stats.forEach((amount, categoryId) => {
-      const cat = categoryStore.getById(categoryId)
+      const parentId = categoryStore.getParentId(categoryId)
+      parentMap.set(parentId, (parentMap.get(parentId) || 0) + amount)
+    })
+    parentMap.forEach((amount, parentId) => {
+      const cat = categoryStore.getById(parentId)
       if (cat && amount > 0) {
         const color = getCategoryColor(cat.name).bg
         pieData.push({ name: cat.name, value: amount, itemStyle: { color } })
-        legendData.push({ categoryId, name: `${cat.icon} ${cat.name}`, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
+        legendData.push({ categoryId: parentId, name: `${cat.icon} ${cat.name}`, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
       }
     })
     incomeCategoryStats.value = legendData.sort((a, b) => b.amount - a.amount)

@@ -37,6 +37,12 @@ export const useCategoryStore = defineStore('category', () => {
     return categories.value.find(c => c.id === id)
   }
 
+  function getParentId(categoryId: number): number {
+    const cat = categories.value.find(c => c.id === categoryId)
+    if (!cat || !cat.id) return categoryId
+    return cat.parentId || cat.id
+  }
+
   async function addCategory(data: Omit<Category, 'id'>) {
     const id = await categoriesApi.addCategory(data)
     await loadCategories()
@@ -63,6 +69,7 @@ export const useCategoryStore = defineStore('category', () => {
     init,
     loadCategories,
     getById,
+    getParentId,
     addCategory,
     updateCategory,
     deleteCategory
