@@ -43,9 +43,9 @@
       </div>
 
       <div class="menu-section">
-        <div class="menu-item" @click="showToast('云端同步功能开发中')">
-          <div class="icon">☁️</div>
-          <div class="label">云端同步</div>
+        <div class="menu-item" @click="$router.push('/manual')">
+          <div class="icon">📖</div>
+          <div class="label">用户手册</div>
           <div class="arrow">›</div>
         </div>
         <div class="menu-item" @click="showToast('记账本 v1.0.0\nVue3 + Vant4 + Dexie.js')">
