@@ -84,6 +84,10 @@ function handleClickOutside(e: MouseEvent) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  // 确保账本数据已加载（首次进入统计页时）
+  if (bookStore.books.length === 0) {
+    bookStore.init()
+  }
 })
 
 onBeforeUnmount(() => {
