@@ -57,8 +57,8 @@
       <div class="version-tag">v1.0.0 · Vue3 + Vant4 + Dexie.js</div>
     </div>
 
-    <!-- 隐藏的文件输入 -->
-    <input ref="fileInput" type="file" accept=".json" style="display:none" @change="onFileSelected" />
+    <!-- 隐藏的文件输入（PWA 兼容） -->
+    <input ref="fileInput" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
 
     <TabBar />
   </div>
@@ -96,9 +96,10 @@ async function handleArchive() {
 }
 
 async function handleExport() {
+  showToast('正在导出...')
   const data = await exportData()
-  downloadBackup(data)
-  showToast('备份已导出')
+  await downloadBackup(data)
+  showToast('导出成功')
 }
 
 function handleImport() {
@@ -196,5 +197,16 @@ onMounted(() => {
   padding: 20px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+/* 文件输入：PWA 兼容隐藏（保持可点击） */
+.file-input-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

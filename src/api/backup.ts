@@ -68,7 +68,7 @@ export async function autoBackup(): Promise<boolean> {
 
   try {
     const data = await exportData()
-    downloadBackup(data)
+    await downloadBackup(data)
     localStorage.setItem('lastAutoBackup', today)
     return true
   } catch {
@@ -77,16 +77,35 @@ export async function autoBackup(): Promise<boolean> {
 }
 
 /**
- * 下载备份文件
+ * 下载备份文件（兼容 PWA）
  */
-export function downloadBackup(data: BackupData): void {
+export async function downloadBackup(data: BackupData): Promise<void> {
   const json = JSON.stringify(data, null, 2)
+  const date = new Date().toISOString().slice(0, 10)
+  const filename = `记账本备份_${date}.json`
   const blob = new Blob([json], { type: 'application/json' })
+
+  // PWA 移动端：使用系统分享面板
+  if (navigator.share && navigator.canShare?.({
+    files: [new File([blob], filename, { type: 'application/json' })]
+  })) {
+    try {
+      await navigator.share({
+        title: '记账本数据备份',
+        text: `导出时间：${data.exportedAt}`,
+        files: [new File([blob], filename, { type: 'application/json' })]
+      })
+      return
+    } catch {
+      // 用户取消分享，降级到普通下载
+    }
+  }
+
+  // 降级：传统下载（桌面端）
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  const date = new Date().toISOString().slice(0, 10)
-  a.download = `记账本备份_${date}.json`
+  a.download = filename
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
