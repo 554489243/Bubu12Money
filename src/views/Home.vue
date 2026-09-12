@@ -83,7 +83,7 @@
 import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
-import { Loading, showToast } from 'vant'
+import { Loading } from 'vant'
 import { useRecordStore } from '@/stores/recordStore'
 import { useCategoryStore } from '@/stores/categoryStore'
 import { useBookStore } from '@/stores/bookStore'
@@ -256,11 +256,19 @@ async function renderCharts() {
     if (pieChart) { pieChart.dispose(); pieChart = null }
     if (pieData.length > 0) {
       pieChart = echarts.init(pieChartRef.value, null, { renderer: 'canvas' })
-      pieChart.setOption({ series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }] })
-      pieChart.on('click', (params: any) => {
-        if (params?.name && params?.value) {
-          showToast({ message: `${params.name} ${(params.value / 100).toFixed(2)} 熊熊币`, position: 'top' })
-        }
+      pieChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: (params: any) => {
+            return `${params.name}<br/>${(params.value / 100).toFixed(2)} 熊熊币<br/>占比 ${params.percent}%`
+          },
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          borderColor: '#eee',
+          borderWidth: 1,
+          textStyle: { color: '#333', fontSize: 13 },
+          extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 8px;'
+        },
+        series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }]
       })
     }
   }
@@ -290,11 +298,19 @@ async function renderCharts() {
     if (incomePieChart) { incomePieChart.dispose(); incomePieChart = null }
     if (pieData.length > 0) {
       incomePieChart = echarts.init(incomePieChartRef.value, null, { renderer: 'canvas' })
-      incomePieChart.setOption({ series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }] })
-      incomePieChart.on('click', (params: any) => {
-        if (params?.name && params?.value) {
-          showToast({ message: `${params.name} ${(params.value / 100).toFixed(2)} 熊熊币`, position: 'top' })
-        }
+      incomePieChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: (params: any) => {
+            return `${params.name}<br/>${(params.value / 100).toFixed(2)} 熊熊币<br/>占比 ${params.percent}%`
+          },
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          borderColor: '#eee',
+          borderWidth: 1,
+          textStyle: { color: '#333', fontSize: 13 },
+          extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 8px;'
+        },
+        series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }]
       })
     }
   }
