@@ -54,6 +54,29 @@ export async function importData(data: BackupData): Promise<void> {
 }
 
 /**
+ * 自动备份（月初/月半检测，同一天只备一次）
+ */
+export async function autoBackup(): Promise<boolean> {
+  const day = new Date().getDate()
+  // 只在月初(1号)或月半(15号)触发
+  if (day !== 1 && day !== 15) return false
+
+  const today = new Date().toISOString().slice(0, 10)
+  const lastBackup = localStorage.getItem('lastAutoBackup')
+  // 今天已备份过，跳过
+  if (lastBackup === today) return false
+
+  try {
+    const data = await exportData()
+    downloadBackup(data)
+    localStorage.setItem('lastAutoBackup', today)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
  * 下载备份文件
  */
 export function downloadBackup(data: BackupData): void {
