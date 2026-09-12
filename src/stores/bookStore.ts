@@ -81,7 +81,6 @@ export const useBookStore = defineStore('book', () => {
     const curr = sorted[idx]
     if (curr.isDefault) return
     if (prev.isDefault) return
-    // 交换 sort 值
     const tmpSort = curr.sort
     await updateBook(curr.id!, { sort: prev.sort })
     await updateBook(prev.id!, { sort: tmpSort })
@@ -95,11 +94,35 @@ export const useBookStore = defineStore('book', () => {
     const next = sorted[idx + 1]
     const curr = sorted[idx]
     if (curr.isDefault) return
-    // 交换 sort 值
     const tmpSort = curr.sort
     await updateBook(curr.id!, { sort: next.sort })
     await updateBook(next.id!, { sort: tmpSort })
     await loadBooks()
+  }
+
+  async function moveBook(fromId: number, toId: number) {
+    if (fromId === toId) return
+    const from = books.value.find(b => b.id === fromId)
+    const to = books.value.find(b => b.id === toId)
+    if (!from || !to || from.isDefault) return
+    const tmp = from.sort
+    await updateBook(fromId, { sort: to.sort })
+    await updateBook(toId, { sort: tmp })
+    await loadBooks()
+  }
+
+  async function reorderBooks(fromIndex: number, toIndex: number) {
+    const sorted = [...books.value].sort((a, b) => {
+      if (a.isDefault) return -1
+      if (b.isDefault) return 1
+      return a.sort - b.sort
+    })
+    if (fromIndex < 0 || fromIndex >= sorted.length) return
+    if (toIndex < 0 || toIndex >= sorted.length) return
+    const fromBook = sorted[fromIndex]
+    const toBook = sorted[toIndex]
+    if (!fromBook || !toBook || fromBook.isDefault) return
+    await moveBook(fromBook.id!, toBook.id!)
   }
 
   return {
@@ -119,6 +142,8 @@ export const useBookStore = defineStore('book', () => {
     setDefaultBook,
     toggleHidden,
     moveUp,
-    moveDown
+    moveDown,
+    moveBook,
+    reorderBooks
   }
 })

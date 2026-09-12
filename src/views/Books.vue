@@ -8,7 +8,7 @@
           <h1>我的账本</h1>
           <span class="book-count">{{ bookStore.books.length }}个</span>
         </div>
-        <p class="subtitle">管理你的收支分类账本</p>
+        <p class="subtitle">长按拖拽可调整顺序</p>
       </div>
     </div>
 
@@ -19,9 +19,16 @@
           v-for="(book, index) in sortedBooks"
           :key="book.id"
           class="book-card"
-          :class="{ hidden: book.hidden }"
-          :style="{ animationDelay: `${index * 0.05}s` }"
+          :class="{ 
+            hidden: book.hidden,
+            'dragging': draggingId === book.id,
+            'drag-over': dragOverIndex === index && draggingId !== book.id
+          }"
+          :style="getCardStyle(book.id!, index)"
         >
+          <div class="drag-handle" @touchstart.prevent="onTouchStart($event, book.id!, index)" @touchmove.prevent="onTouchMove($event)" @touchend.prevent="onTouchEnd($event)" @touchcancel.prevent="onTouchEnd($event)">
+            <span class="grip-dots">⠿</span>
+          </div>
           <div class="book-icon-wrap" :style="{ background: book.color + '20' }">
             <span class="book-icon">{{ book.icon }}</span>
           </div>
@@ -38,12 +45,6 @@
             </div>
           </div>
           <div class="book-card-footer">
-            <button class="action-btn" :disabled="book.isDefault || index === 0" @click.stop="bookStore.moveUp(book.id!)">
-              <van-icon name="arrow-up" size="12" />
-            </button>
-            <button class="action-btn" :disabled="book.isDefault || index === sortedBooks.length - 1" @click.stop="bookStore.moveDown(book.id!)">
-              <van-icon name="arrow-down" size="12" />
-            </button>
             <button class="action-btn" :disabled="book.isDefault" @click.stop="bookStore.toggleHidden(book.id!)">
               <van-icon :name="book.hidden ? 'eye-o' : 'closed-eye'" size="12" />
             </button>
@@ -129,12 +130,21 @@ const formName = ref('')
 const formIcon = ref('📱')
 const formColor = ref('#1989fa')
 
+// 拖拽状态
+const draggingId = ref<number | null>(null)
+const dragOverIndex = ref<number>(-1)
+const touchStartY = ref(0)
+const touchStartX = ref(0)
+const currentY = ref(0)
+const cardHeight = 72 // 卡片高度 + gap
+const dragIndex = ref(-1)
+const isDragging = ref(false)
+const dragTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
 const sortedBooks = computed(() => {
   return [...bookStore.books].sort((a, b) => {
-    // 默认账本始终置顶
     if (a.isDefault) return -1
     if (b.isDefault) return 1
-    // 其他按 sort 升序（用户排序）
     return a.sort - b.sort
   })
 })
@@ -182,7 +192,6 @@ async function saveBook() {
     })
     showToast('已更新')
   } else {
-    // 新账本插在默认账本下面（排第二）
     const nonDefaultBooks = bookStore.books.filter(b => !b.isDefault)
     const minSort = nonDefaultBooks.length > 0
       ? Math.min(...nonDefaultBooks.map(b => b.sort)) - 1
@@ -225,6 +234,94 @@ async function handleDelete(id: number) {
 
   await bookStore.deleteBook(id)
   showToast('已删除')
+}
+
+// === 触摸拖拽排序 ===
+function onTouchStart(e: TouchEvent, bookId: number, index: number) {
+  const book = sortedBooks.value[index]
+  if (!book || book.isDefault) return
+  
+  touchStartY.value = e.touches[0].clientY
+  touchStartX.value = e.touches[0].clientX
+  currentY.value = 0
+  dragIndex.value = index
+  isDragging.value = false
+  
+  // 长按 300ms 后进入拖拽模式
+  dragTimer.value = setTimeout(() => {
+    draggingId.value = bookId
+    isDragging.value = true
+    dragOverIndex.value = index
+    // 震动反馈
+    if (navigator.vibrate) navigator.vibrate(50)
+  }, 300)
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (draggingId.value === null) {
+    // 还没进入拖拽模式，检查是否移动过多（滚动 vs 拖拽）
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.value)
+    const dx = Math.abs(e.touches[0].clientX - touchStartX.value)
+    if (dy > 10 || dx > 10) {
+      // 移动了，取消拖拽计时
+      if (dragTimer.value) {
+        clearTimeout(dragTimer.value)
+        dragTimer.value = null
+      }
+    }
+    return
+  }
+  
+  if (!isDragging.value) return
+  
+  currentY.value = e.touches[0].clientY - touchStartY.value
+  
+  // 计算当前拖拽到哪个位置
+  const totalMove = currentY.value
+  const slots = Math.round(totalMove / cardHeight)
+  let newIndex = dragIndex.value + slots
+  newIndex = Math.max(0, Math.min(sortedBooks.value.length - 1, newIndex))
+  
+  if (newIndex !== dragOverIndex.value) {
+    dragOverIndex.value = newIndex
+  }
+}
+
+function onTouchEnd(_e: TouchEvent) {
+  if (dragTimer.value) {
+    clearTimeout(dragTimer.value)
+    dragTimer.value = null
+  }
+  
+  if (isDragging.value && draggingId.value !== null && dragOverIndex.value >= 0) {
+    if (dragOverIndex.value !== dragIndex.value) {
+      bookStore.reorderBooks(dragIndex.value, dragOverIndex.value)
+    }
+  }
+  
+  draggingId.value = null
+  dragOverIndex.value = -1
+  isDragging.value = false
+  currentY.value = 0
+  dragIndex.value = -1
+}
+
+function getCardStyle(bookId: number, _index: number) {
+  if (draggingId.value === bookId && isDragging.value) {
+    return {
+      transform: `translateY(${currentY.value}px)`,
+      zIndex: 1000,
+      opacity: 0.9,
+      boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
+    }
+  }
+  if (dragOverIndex.value === _index && draggingId.value !== null) {
+    return {
+      transform: 'scale(0.97)',
+      opacity: 0.7
+    }
+  }
+  return {}
 }
 
 onMounted(async () => {
@@ -305,8 +402,10 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   animation: cardIn 0.4s ease both;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
   cursor: default;
+  position: relative;
+  touch-action: pan-y;
 }
 .book-card:active {
   transform: scale(0.99);
@@ -315,10 +414,44 @@ onMounted(async () => {
 .book-card.hidden {
   opacity: 0.6;
 }
+.book-card.dragging {
+  transition: none;
+  cursor: grabbing;
+  background: #f0f7ff;
+  border: 2px dashed var(--primary);
+}
+.book-card.drag-over {
+  border: 2px dashed var(--primary);
+  background: #f0f7ff;
+}
 
 @keyframes cardIn {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* 拖拽手柄 */
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 36px;
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.drag-handle:active {
+  cursor: grabbing;
+  opacity: 1;
+}
+.grip-dots {
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -2px;
+  color: var(--text-secondary);
 }
 
 .book-icon-wrap {
@@ -408,12 +541,6 @@ onMounted(async () => {
   color: var(--danger);
 }
 
-/* 排序按钮突出 */
-.book-card-footer .action-btn:nth-child(1),
-.book-card-footer .action-btn:nth-child(2) {
-  background: var(--primary-light);
-  color: var(--primary);
-}
 
 /* 新建卡片 */
 .add-card {
