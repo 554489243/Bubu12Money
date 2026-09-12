@@ -32,7 +32,7 @@
       <!-- 金额区 -->
       <div class="amount-area">
         <div class="amount-row">
-          <span class="amount-label">{{ recordType === 'expense' ? '支出' : '收入' }} ￥</span>
+          <span class="amount-label">{{ recordType === 'expense' ? '支出' : '收入' }} 熊熊币</span>
           <span class="amount-value" :class="recordType">{{ displayAmount }}</span>
         </div>
         <span class="amount-expr" v-if="expression.length > 0">{{ expression }}</span>

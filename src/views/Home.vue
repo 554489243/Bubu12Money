@@ -18,12 +18,12 @@
           <div class="overview-row">
             <div class="overview-item">
               <div class="label">支出</div>
-              <div class="amount expense"><small>￥</small>{{ expenseYuan }}</div>
+              <div class="amount expense"><small>熊熊币</small>{{ expenseYuan }}</div>
             </div>
             <div class="divider"></div>
             <div class="overview-item">
               <div class="label">收入</div>
-              <div class="amount income"><small>￥</small>{{ incomeYuan }}</div>
+              <div class="amount income"><small>熊熊币</small>{{ incomeYuan }}</div>
             </div>
           </div>
           <div class="view-toggle">
@@ -215,7 +215,7 @@ async function renderCharts() {
       grid: { top: 20, right: 20, bottom: 30, left: 60 },
       legend: { data: ['支出', '收入'], top: 0, textStyle: { fontSize: 11 } },
       xAxis: { type: 'category', data: filledData.map(d => d.label), axisLabel: { fontSize: 11 } },
-      yAxis: { type: 'value', axisLabel: { fontSize: 11, formatter: (v: number) => '￥' + (v / 100).toFixed(0) } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 11, formatter: (v: number) => (v / 100).toFixed(0) + ' 熊熊币' } },
       series: [
         {
           name: '支出', type: 'bar', data: filledData.map(d => d.expense),
@@ -259,7 +259,7 @@ async function renderCharts() {
       pieChart.setOption({ series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }] })
       pieChart.on('click', (params: any) => {
         if (params?.name && params?.value) {
-          showToast(`${params.name} ￥${(params.value / 100).toFixed(2)}`)
+          showToast(`${params.name} ${(params.value / 100).toFixed(2)} 熊熊币`)
         }
       })
     }
@@ -293,7 +293,7 @@ async function renderCharts() {
       incomePieChart.setOption({ series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }] })
       incomePieChart.on('click', (params: any) => {
         if (params?.name && params?.value) {
-          showToast(`${params.name} ￥${(params.value / 100).toFixed(2)}`)
+          showToast(`${params.name} ${(params.value / 100).toFixed(2)} 熊熊币`)
         }
       })
     }
