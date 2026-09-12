@@ -18,6 +18,19 @@
           <div class="label">分类管理</div>
           <div class="arrow">›</div>
         </div>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-item" @click="handleExport">
+          <div class="icon">📤</div>
+          <div class="label">导出数据</div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="menu-item" @click="handleImport">
+          <div class="icon">📥</div>
+          <div class="label">导入数据</div>
+          <div class="arrow">›</div>
+        </div>
         <div class="menu-item" @click="handleArchive">
           <div class="icon">📦</div>
           <div class="label">数据归档</div>
@@ -44,6 +57,9 @@
       <div class="version-tag">v1.0.0 · Vue3 + Vant4 + Dexie.js</div>
     </div>
 
+    <!-- 隐藏的文件输入 -->
+    <input ref="fileInput" type="file" accept=".json" style="display:none" @change="onFileSelected" />
+
     <TabBar />
   </div>
 </template>
@@ -53,9 +69,11 @@ import { ref, onMounted } from 'vue'
 import { showToast, showConfirmDialog } from 'vant'
 import TabBar from '@/components/TabBar.vue'
 import { useRecordStore } from '@/stores/recordStore'
+import { exportData, importData, downloadBackup } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
+const fileInput = ref<HTMLInputElement>()
 
 async function refreshArchivable() {
   archivableCount.value = await recordStore.countArchivable()
@@ -75,6 +93,44 @@ async function handleArchive() {
   const count = await recordStore.doArchive()
   showToast(`已归档 ${count} 条记录`)
   archivableCount.value = 0
+}
+
+async function handleExport() {
+  const data = await exportData()
+  downloadBackup(data)
+  showToast('备份已导出')
+}
+
+function handleImport() {
+  fileInput.value?.click()
+}
+
+async function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    const data = JSON.parse(text)
+    if (!data.version || !data.records) {
+      showToast('无效的备份文件')
+      return
+    }
+    await showConfirmDialog({
+      title: '导入数据',
+      message: '导入将覆盖当前所有数据，确认继续？',
+      confirmButtonText: '确认导入',
+      confirmButtonColor: '#ee0a24'
+    })
+    await importData(data)
+    showToast('数据导入成功，请刷新页面')
+    setTimeout(() => location.reload(), 1500)
+  } catch (e: any) {
+    showToast(e.message || '导入失败')
+  } finally {
+    input.value = ''
+  }
 }
 
 onMounted(() => {
