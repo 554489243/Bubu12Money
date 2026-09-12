@@ -13,6 +13,7 @@
 | [07-salary-slip-requirements.md](07-salary-slip-requirements.md) | 工资单需求 | 工资单功能已上线，此文档归档 |
 | [08-archive-requirements.md](08-archive-requirements.md) | 数据归档需求 | 数据归档功能已上线，此文档归档 |
 | README.md | 本文档 | 快速定位所需文档 |
+| [用户手册](https://554489243.github.io/Bubu12Money/#/manual) | 使用指南 | 账本/分类/记账/同步/归档说明 |
 
 ## 文档维护规范
 
