@@ -115,7 +115,7 @@ async function renderCharts() {
         type: 'value',
         axisLabel: {
           fontSize: 11,
-          formatter: (v: number) => (v / 100).toFixed(0) + ' 熊熊币'
+          formatter: (v: number) => '￥' + (v / 100).toFixed(0)
         }
       },
       series: [

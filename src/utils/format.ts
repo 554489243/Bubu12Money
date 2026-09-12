@@ -1,10 +1,10 @@
 /**
  * 分 → 元，返回格式化字符串
- * 1088 → 10.88 熊熊币
+ * 1088 → ￥10.88
  */
 export function formatAmount(cents: number): string {
   const yuan = cents / 100
-  return yuan.toFixed(2) + ' 熊熊币'
+  return '￥' + yuan.toFixed(2)
 }
 
 /**
@@ -25,12 +25,12 @@ export function yuanToCents(yuan: number): number {
 
 /**
  * 格式化金额显示（带千分位）
- * 284650 → 2,846.50 熊熊币
+ * 284650 → ￥2,846.50
  */
 export function formatAmountFull(cents: number): string {
   const yuan = cents / 100
-  return yuan.toLocaleString('zh-CN', {
+  return '￥' + yuan.toLocaleString('zh-CN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }) + ' 熊熊币'
+  })
 }

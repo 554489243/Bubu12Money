@@ -18,12 +18,12 @@
           <div class="overview-row">
             <div class="overview-item">
               <div class="label">支出</div>
-              <div class="amount expense"><small>熊熊币</small>{{ expenseYuan }}</div>
+              <div class="amount expense"><small>￥</small>{{ expenseYuan }}</div>
             </div>
             <div class="divider"></div>
             <div class="overview-item">
               <div class="label">收入</div>
-              <div class="amount income"><small>熊熊币</small>{{ incomeYuan }}</div>
+              <div class="amount income"><small>￥</small>{{ incomeYuan }}</div>
             </div>
           </div>
           <div class="view-toggle">
@@ -215,7 +215,7 @@ async function renderCharts() {
       grid: { top: 20, right: 20, bottom: 30, left: 60 },
       legend: { data: ['支出', '收入'], top: 0, textStyle: { fontSize: 11 } },
       xAxis: { type: 'category', data: filledData.map(d => d.label), axisLabel: { fontSize: 11 } },
-      yAxis: { type: 'value', axisLabel: { fontSize: 11, formatter: (v: number) => (v / 100).toFixed(0) + ' 熊熊币' } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 11, formatter: (v: number) => '￥' + (v / 100).toFixed(0) } },
       series: [
         {
           name: '支出', type: 'bar', data: filledData.map(d => d.expense),
