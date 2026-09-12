@@ -121,7 +121,7 @@ export async function autoBackup(): Promise<boolean> {
 }
 
 /**
- * 下载备份文件（兼容 PWA）
+ * 下载备份文件（PWA 兼容）
  */
 export async function downloadBackup(data: BackupData): Promise<void> {
   const json = JSON.stringify(data, null, 2)
@@ -141,17 +141,24 @@ export async function downloadBackup(data: BackupData): Promise<void> {
       })
       return
     } catch {
-      // 用户取消分享，降级到普通下载
+      // 用户取消分享，降级
     }
   }
 
-  // 降级：传统下载（桌面端）
+  // 降级：新窗口打开，用户可手动保存
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  const win = window.open()
+  if (win) {
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;background:#f5f5f5;}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;}</style></head><body><h3>${filename}</h3><p>请按 Ctrl+S（或长按 → 保存）保存此文件</p><pre>${json}</pre></body></html>`)
+    win.document.close()
+  } else {
+    // 弹窗被拦截，用传统下载
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
   URL.revokeObjectURL(url)
 }

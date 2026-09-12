@@ -26,11 +26,12 @@
           <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
-        <div class="menu-item" @click="handleImport">
+        <label class="menu-item" for="import-file-input">
           <div class="icon">📥</div>
           <div class="label">导入数据</div>
           <div class="arrow">›</div>
-        </div>
+        </label>
+        <input id="import-file-input" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
         <div class="menu-item" @click="handleArchive">
           <div class="icon">📦</div>
           <div class="label">数据归档</div>
@@ -57,8 +58,7 @@
       <div class="version-tag">v1.0.0 · Vue3 + Vant4 + Dexie.js</div>
     </div>
 
-    <!-- 隐藏的文件输入（PWA 兼容） -->
-    <input ref="fileInput" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
+
 
     <TabBar />
   </div>
@@ -73,7 +73,6 @@ import { exportData, importData, downloadBackup, mergeData } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
-const fileInput = ref<HTMLInputElement>()
 
 async function refreshArchivable() {
   archivableCount.value = await recordStore.countArchivable()
@@ -100,10 +99,6 @@ async function handleExport() {
   const data = await exportData()
   await downloadBackup(data)
   showToast('导出成功')
-}
-
-function handleImport() {
-  fileInput.value?.click()
 }
 
 async function onFileSelected(event: Event) {
