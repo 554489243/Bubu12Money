@@ -31,8 +31,52 @@ export async function exportData(): Promise<BackupData> {
 }
 
 /**
- * 从备份数据恢复（覆盖当前数据）
+ * 智能合并导入（不重复、不丢数据）
+ * - 分类/账本：相同 ID 跳过，只补新的
+ * - 记录：按 ID 合并，有则更新，无则添加
  */
+export async function mergeData(data: BackupData): Promise<{ records: number; categories: number; books: number }> {
+  if (!data || !data.version) {
+    throw new Error('无效的备份文件')
+  }
+
+  const result = { records: 0, categories: 0, books: 0 }
+
+  await db.transaction('rw', db.records, db.records_history, db.categories, db.books, async () => {
+    // 分类：跳过已存在的
+    if (data.categories?.length) {
+      const existing = await db.categories.toArray()
+      const existingIds = new Set(existing.map(c => c.id))
+      const newCats = data.categories.filter(c => !existingIds.has(c.id))
+      if (newCats.length) {
+        await db.categories.bulkAdd(newCats)
+        result.categories = newCats.length
+      }
+    }
+
+    // 账本：跳过已存在的
+    if (data.books?.length) {
+      const existing = await db.books.toArray()
+      const existingIds = new Set(existing.map(b => b.id))
+      const newBooks = data.books.filter(b => !existingIds.has(b.id))
+      if (newBooks.length) {
+        await db.books.bulkAdd(newBooks)
+        result.books = newBooks.length
+      }
+    }
+
+    // 记录：按 ID 合并（有则更新，无则添加）
+    if (data.records?.length) {
+      await db.records.bulkPut(data.records)
+      result.records = data.records.length
+    }
+    if (data.records_history?.length) {
+      await db.records_history.bulkPut(data.records_history)
+    }
+  })
+
+  return result
+}
 export async function importData(data: BackupData): Promise<void> {
   if (!data || !data.version) {
     throw new Error('无效的备份文件')

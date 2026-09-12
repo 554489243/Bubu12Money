@@ -69,7 +69,7 @@ import { ref, onMounted } from 'vue'
 import { showToast, showConfirmDialog } from 'vant'
 import TabBar from '@/components/TabBar.vue'
 import { useRecordStore } from '@/stores/recordStore'
-import { exportData, importData, downloadBackup } from '@/api/backup'
+import { exportData, importData, downloadBackup, mergeData } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
@@ -120,12 +120,12 @@ async function onFileSelected(event: Event) {
     }
     await showConfirmDialog({
       title: '导入数据',
-      message: '导入将覆盖当前所有数据，确认继续？',
-      confirmButtonText: '确认导入',
-      confirmButtonColor: '#ee0a24'
+      message: '将合并备份数据到当前账本（自动去重，不会丢失现有数据）',
+      confirmButtonText: '合并导入',
+      confirmButtonColor: '#1989fa'
     })
-    await importData(data)
-    showToast('数据导入成功，请刷新页面')
+    const result = await mergeData(data)
+    showToast(`导入完成：${result.records} 条记录，${result.categories} 个分类，${result.books} 个账本`)
     setTimeout(() => location.reload(), 1500)
   } catch (e: any) {
     showToast(e.message || '导入失败')
