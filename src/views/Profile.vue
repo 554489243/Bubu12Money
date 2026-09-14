@@ -26,12 +26,11 @@
           <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
-        <label class="menu-item" for="import-file-input">
+        <div class="menu-item" @click="handleImport">
           <div class="icon">📥</div>
           <div class="label">导入数据</div>
           <div class="arrow">›</div>
-        </label>
-        <input id="import-file-input" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
+        </div>
         <div class="menu-item" @click="handleArchive">
           <div class="icon">📦</div>
           <div class="label">数据归档</div>
@@ -58,7 +57,8 @@
       <div class="version-tag">v1.0.0 · Vue3 + Vant4 + Dexie.js</div>
     </div>
 
-
+    <!-- 隐藏的文件输入 -->
+    <input ref="fileInput" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
 
     <TabBar />
   </div>
@@ -73,6 +73,7 @@ import { exportData, importData, downloadBackup, mergeData } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
+const fileInput = ref<HTMLInputElement>()
 
 async function refreshArchivable() {
   archivableCount.value = await recordStore.countArchivable()
@@ -95,10 +96,19 @@ async function handleArchive() {
 }
 
 async function handleExport() {
-  showToast('正在导出...')
   const data = await exportData()
-  await downloadBackup(data)
-  showToast('导出成功')
+  const result = await downloadBackup(data)
+  if (result === 'shared') {
+    showToast('已分享备份文件')
+  } else if (result === 'saved') {
+    showToast('备份已保存')
+  } else {
+    showToast('请在弹出的窗口中保存文件')
+  }
+}
+
+function handleImport() {
+  fileInput.value?.click()
 }
 
 async function onFileSelected(event: Event) {
@@ -196,12 +206,12 @@ onMounted(() => {
 
 /* 文件输入：PWA 兼容隐藏（保持可点击） */
 .file-input-hidden {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: auto;
 }
 </style>

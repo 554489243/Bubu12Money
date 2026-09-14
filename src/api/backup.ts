@@ -112,8 +112,10 @@ export async function autoBackup(): Promise<boolean> {
 
   try {
     const data = await exportData()
-    await downloadBackup(data)
-    localStorage.setItem('lastAutoBackup', today)
+    const result = await downloadBackup(data)
+    if (result !== 'shown') {
+      localStorage.setItem('lastAutoBackup', today)
+    }
     return true
   } catch {
     return false
@@ -122,14 +124,15 @@ export async function autoBackup(): Promise<boolean> {
 
 /**
  * 下载备份文件（PWA 兼容）
+ * 优先级：系统分享 → 文件保存API → 弹窗显示JSON
  */
-export async function downloadBackup(data: BackupData): Promise<void> {
+export async function downloadBackup(data: BackupData): Promise<'shared' | 'saved' | 'shown'> {
   const json = JSON.stringify(data, null, 2)
   const date = new Date().toISOString().slice(0, 10)
   const filename = `记账本备份_${date}.json`
   const blob = new Blob([json], { type: 'application/json' })
 
-  // PWA 移动端：使用系统分享面板
+  // 方式1：系统分享面板（Android PWA 最可靠）
   if (navigator.share && navigator.canShare?.({
     files: [new File([blob], filename, { type: 'application/json' })]
   })) {
@@ -139,17 +142,33 @@ export async function downloadBackup(data: BackupData): Promise<void> {
         text: `导出时间：${data.exportedAt}`,
         files: [new File([blob], filename, { type: 'application/json' })]
       })
-      return
+      return 'shared'
     } catch {
-      // 用户取消分享，降级
+      // 用户取消或失败，降级
     }
   }
 
-  // 降级：新窗口打开，用户可手动保存
+  // 方式2：文件保存API（File System Access）
+  if ('showSaveFilePicker' in window) {
+    try {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'JSON 备份文件', accept: { 'application/json': ['.json'] } }]
+      })
+      const writable = await handle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      return 'saved'
+    } catch {
+      // 用户取消或失败，降级
+    }
+  }
+
+  // 方式3：新窗口打开，用户手动保存
   const url = URL.createObjectURL(blob)
   const win = window.open()
   if (win) {
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;background:#f5f5f5;}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;}</style></head><body><h3>${filename}</h3><p>请按 Ctrl+S（或长按 → 保存）保存此文件</p><pre>${json}</pre></body></html>`)
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;background:#f5f5f5;}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;}</style></head><body><h3>${filename}</h3><p>请按 Ctrl+S（或长按 → 保存）保存此文件</p><pre>${json.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body></html>`)
     win.document.close()
   } else {
     // 弹窗被拦截，用传统下载
@@ -161,4 +180,5 @@ export async function downloadBackup(data: BackupData): Promise<void> {
     document.body.removeChild(a)
   }
   URL.revokeObjectURL(url)
+  return 'shown'
 }
