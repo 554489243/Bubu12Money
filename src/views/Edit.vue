@@ -551,8 +551,6 @@ async function handleSave() {
       await recordStore.addRecord(data)
       showToast('已保存')
       expression.value = ''; note.value = ''
-      selectedDate.value = today()
-      datePickerValue.value = today().split('-').map(String)
       await nextTick()
     }
   } finally { saving.value = false }
