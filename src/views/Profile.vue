@@ -107,14 +107,27 @@ async function handleExport() {
   }
 }
 
-function handleImport() {
+async function handleImport() {
+  // 优先用 File System Access API（PWA 兼容性好）
+  if ('showOpenFilePicker' in window) {
+    try {
+      const [handle] = await (window as any).showOpenFilePicker({
+        types: [{ description: 'JSON 备份文件', accept: { 'application/json': ['.json'] } }],
+        multiple: false
+      })
+      const file = await handle.getFile()
+      await processFile(file)
+      return
+    } catch {
+      // 用户取消或 API 不可用，降级
+    }
+  }
+
+  // 降级：传统文件选择器
   fileInput.value?.click()
 }
 
-async function onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
+async function processFile(file: File) {
 
   try {
     const text = await file.text()
@@ -135,8 +148,15 @@ async function onFileSelected(event: Event) {
   } catch (e: any) {
     showToast(e.message || '导入失败')
   } finally {
-    input.value = ''
+    if (fileInput.value) fileInput.value.value = ''
   }
+}
+
+async function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  await processFile(file)
 }
 
 onMounted(() => {
