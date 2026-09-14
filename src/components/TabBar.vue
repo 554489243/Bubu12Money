@@ -39,6 +39,7 @@ function isActive(path: string) {
 }
 
 function goTo(path: string) {
+  if (route.path === path) return
   router.push(path)
 }
 </script>
