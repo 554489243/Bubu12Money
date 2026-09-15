@@ -14,7 +14,7 @@
         :class="{ active: isActive(tab.path) }"
         @click="goTo(tab.path)"
       >
-        <div class="tab-icon">{{ tab.icon }}</div>
+        <van-icon :name="tab.icon" size="22" :color="isActive(tab.path) ? 'var(--primary)' : 'var(--text-secondary)'" />
         <div class="tab-label">{{ tab.label }}</div>
       </div>
     </div>
@@ -28,9 +28,9 @@ const route = useRoute()
 const router = useRouter()
 
 const tabs = [
-  { path: '/', icon: '📋', label: '明细' },
-  { path: '/stats', icon: '📊', label: '统计' },
-  { path: '/profile', icon: '👤', label: '我的' },
+  { path: '/', icon: 'records', label: '明细' },
+  { path: '/stats', icon: 'bar-chart-o', label: '统计' },
+  { path: '/profile', icon: 'contact-o', label: '我的' },
 ]
 
 function isActive(path: string) {
@@ -79,7 +79,7 @@ function goTo(path: string) {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), #40a9ff);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   box-shadow: 0 4px 16px rgba(25, 137, 250, 0.35);
   display: flex;
   align-items: center;
@@ -105,7 +105,6 @@ function goTo(path: string) {
   flex: 1;
 }
 .tab-item:active { transform: scale(0.92); }
-.tab-icon { font-size: 22px; }
 .tab-label { font-size: 10px; color: var(--text-secondary); }
 .tab-item.active .tab-label { color: var(--primary); font-weight: 600; }
 </style>
