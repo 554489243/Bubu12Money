@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page">
     <!-- 账本选择 -->
     <div class="book-row">
@@ -521,7 +521,11 @@ onMounted(async () => {
   padding: 0 12px;
 }
 .date-group {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 .date-group-header {
   display: flex;
@@ -546,16 +550,13 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 14px;
-  margin-bottom: 8px;
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }
-.record-card:active {
-  transform: scale(0.98);
-  box-shadow: none;
+.record-card:active {transform: scale(0.98);box-shadow: none;}
+.record-card:last-child {
+  border-bottom: none;
 }
 .record-icon {
   width: 40px;
