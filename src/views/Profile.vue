@@ -28,7 +28,7 @@
         </div>
         <div class="menu-item" @click="handleImport">
           <div class="icon">📥</div>
-          <div class="label">导入数据<span class="import-hint"> 无反应请进浏览器</span></div>
+          <div class="label">导入数据<a class="import-link" @click.stop="openInBrowser">无反应?浏览器打开</a></div>
           <div class="arrow">›</div>
         </div>
         <div class="menu-item" @click="handleArchive">
@@ -122,6 +122,12 @@ async function handleImport() {
   window.open('import.html', '_blank', 'width=400,height=500')
 }
 
+function openInBrowser() {
+  // 在系统浏览器中打开当前页面（用于 PWA 导入失败时）
+  const url = window.location.href
+  window.open(url, '_blank')
+}
+
 function setupImportListener() {
   window.addEventListener('message', async (e) => {
     if (e.data?.type === 'import-backup') {
@@ -194,7 +200,7 @@ onMounted(() => {
 .menu-item:active { background: var(--bg); }
 .menu-item .icon { font-size: 20px; }
 .menu-item .label { flex: 1; font-size: 14px; }
-.import-hint { font-size: 10px; color: var(--text-secondary); margin-left: 4px; }
+.import-link { font-size: 10px; color: var(--primary); margin-left: 4px; text-decoration: underline; cursor: pointer; }
 .menu-item .arrow { color: var(--text-secondary); font-size: 12px; }
 .archive-info {
   display: flex;
