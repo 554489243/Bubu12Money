@@ -23,7 +23,7 @@
       <div class="menu-section">
         <div class="menu-item" @click="handleExport">
           <div class="icon">📤</div>
-          <div class="label">导出数据</div>
+          <div class="label">导出数据<a class="import-link" @click.stop="openExportInBrowser">浏览器打开</a></div>
           <div class="arrow">›</div>
         </div>
         <div class="menu-item" @click="handleImport">
@@ -132,6 +132,17 @@ function openInBrowser() {
     showCancelButton: false,
     messageAlign: 'left',
   })
+}
+
+async function openExportInBrowser() {
+  const data = await exportData()
+  const json = JSON.stringify(data, null, 2)
+  const date = new Date().toISOString().slice(0, 10)
+  const filename = `记账本备份_${date}.json`
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;background:#f5f6f8}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;border:1px solid #e8e8e8}h3{color:#333}.btn{display:inline-block;padding:10px 20px;background:#1989fa;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;margin:12px 0}</style></head><body><h3>📤 ${filename}</h3><p>长按下方区域 → 全选 → 复制保存</p><button class="btn" onclick="this.nextElementSibling.select();document.execCommand('copy');">复制全部</button><pre contenteditable>${json.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></body></html>`
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  window.open(url, '_blank')
 }
 
 function setupImportListener() {

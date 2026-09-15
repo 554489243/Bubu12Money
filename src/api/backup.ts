@@ -10,7 +10,7 @@ export interface BackupData {
 }
 
 /**
- * 导出所有数据为 JSON 文件
+ * 导出所有数据为 JSON
  */
 export async function exportData(): Promise<BackupData> {
   const [records, records_history, categories, books] = await Promise.all([
@@ -32,8 +32,6 @@ export async function exportData(): Promise<BackupData> {
 
 /**
  * 智能合并导入（不重复、不丢数据）
- * - 分类/账本：相同 ID 跳过，只补新的
- * - 记录：按 ID 合并，有则更新，无则添加
  */
 export async function mergeData(data: BackupData): Promise<{ records: number; categories: number; books: number }> {
   if (!data || !data.version) {
@@ -43,7 +41,6 @@ export async function mergeData(data: BackupData): Promise<{ records: number; ca
   const result = { records: 0, categories: 0, books: 0 }
 
   await db.transaction('rw', db.records, db.records_history, db.categories, db.books, async () => {
-    // 分类：跳过已存在的
     if (data.categories?.length) {
       const existing = await db.categories.toArray()
       const existingIds = new Set(existing.map(c => c.id))
@@ -54,7 +51,6 @@ export async function mergeData(data: BackupData): Promise<{ records: number; ca
       }
     }
 
-    // 账本：跳过已存在的
     if (data.books?.length) {
       const existing = await db.books.toArray()
       const existingIds = new Set(existing.map(b => b.id))
@@ -65,7 +61,6 @@ export async function mergeData(data: BackupData): Promise<{ records: number; ca
       }
     }
 
-    // 记录：按 ID 合并（有则更新，无则添加）
     if (data.records?.length) {
       await db.records.bulkPut(data.records)
       result.records = data.records.length
@@ -77,19 +72,18 @@ export async function mergeData(data: BackupData): Promise<{ records: number; ca
 
   return result
 }
+
 export async function importData(data: BackupData): Promise<void> {
   if (!data || !data.version) {
     throw new Error('无效的备份文件')
   }
 
   await db.transaction('rw', db.records, db.records_history, db.categories, db.books, async () => {
-    // 清空现有数据
     await db.records.clear()
     await db.records_history.clear()
     await db.categories.clear()
     await db.books.clear()
 
-    // 恢复数据
     if (data.records?.length) await db.records.bulkAdd(data.records)
     if (data.records_history?.length) await db.records_history.bulkAdd(data.records_history)
     if (data.categories?.length) await db.categories.bulkAdd(data.categories)
@@ -103,17 +97,14 @@ export async function importData(data: BackupData): Promise<void> {
  */
 export async function autoBackup(): Promise<boolean> {
   const day = new Date().getDate()
-  // 只在月初(1号)或月半(15号)触发
   if (day !== 1 && day !== 15) return false
 
   const today = new Date().toISOString().slice(0, 10)
   const lastBackup = localStorage.getItem('lastAutoBackup')
-  // 今天已备份过，跳过
   if (lastBackup === today) return false
 
   try {
     const data = await exportData()
-    // 静默保存到 localStorage（不触发下载/分享弹窗）
     localStorage.setItem('autoBackup_' + today, JSON.stringify(data))
     localStorage.setItem('lastAutoBackup', today)
     return true
@@ -123,8 +114,8 @@ export async function autoBackup(): Promise<boolean> {
 }
 
 /**
- * 下载备份文件（PWA 兼容）
- * 优先级：系统分享 → 文件保存API → 弹窗显示JSON
+ * 下载备份文件
+ * 优先用系统分享（浏览器环境），PWA 内直接新窗口打开 JSON
  */
 export async function downloadBackup(data: BackupData): Promise<'shared' | 'saved' | 'shown'> {
   const json = JSON.stringify(data, null, 2)
@@ -132,7 +123,7 @@ export async function downloadBackup(data: BackupData): Promise<'shared' | 'save
   const filename = `记账本备份_${date}.json`
   const blob = new Blob([json], { type: 'application/json' })
 
-  // 方式1：系统分享面板（Android PWA 最可靠）
+  // 方式1：系统分享面板（浏览器环境）
   if (navigator.share && navigator.canShare?.({
     files: [new File([blob], filename, { type: 'application/json' })]
   })) {
@@ -148,7 +139,7 @@ export async function downloadBackup(data: BackupData): Promise<'shared' | 'save
     }
   }
 
-  // 方式2：文件保存API（File System Access）
+  // 方式2：文件保存API（File System Access，浏览器环境）
   if ('showSaveFilePicker' in window) {
     try {
       const handle = await (window as any).showSaveFilePicker({
@@ -164,21 +155,10 @@ export async function downloadBackup(data: BackupData): Promise<'shared' | 'save
     }
   }
 
-  // 方式3：新窗口打开，用户手动保存
-  const url = URL.createObjectURL(blob)
-  const win = window.open()
-  if (win) {
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;background:#f5f5f5;}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;}</style></head><body><h3>${filename}</h3><p>请按 Ctrl+S（或长按 → 保存）保存此文件</p><pre>${json.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body></html>`)
-    win.document.close()
-  } else {
-    // 弹窗被拦截，用传统下载
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
-  URL.revokeObjectURL(url)
+  // 方式3：PWA 内 → 打开浏览器窗口导出页面
+  const exportUrl = `data:text/html;charset=utf-8,` + encodeURIComponent(
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;background:#f5f6f8}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;border:1px solid #e8e8e8;max-height:70vh}h3{color:#333}.btn{display:inline-block;padding:10px 20px;background:#1989fa;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;margin:12px 0}</style></head><body><h3>📤 ${filename}</h3><p>请长按下方区域 → 全选 → 复制，或点击按钮保存</p><button class="btn" id="saveBtn">保存文件</button><pre id="content"></pre><script>document.getElementById('content').textContent=${JSON.stringify(json)};document.getElementById('saveBtn').onclick=function(){var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(${JSON.stringify(json)});a.download='${filename}';a.click()};</script></body></html>`
+  )
+  window.open(exportUrl, '_blank')
   return 'shown'
 }
