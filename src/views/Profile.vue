@@ -26,12 +26,10 @@
           <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
-        <div class="menu-item import-item">
-          <div class="icon">📥</div>
-          <div class="label">导入数据</div>
-          <input ref="fileInput" type="file" accept=".json" class="file-input-overlay" @change="onFileSelected" />
-          <div class="arrow">›</div>
-        </div>
+        <label class="import-btn">
+          <input ref="fileInput" type="file" accept=".json" @change="onFileSelected" />
+          <span class="import-btn-text">📥 导入数据（点击选择文件）</span>
+        </label>
         <div class="menu-item" @click="handleArchive">
           <div class="icon">📦</div>
           <div class="label">数据归档</div>
@@ -65,6 +63,7 @@
 
       <div class="version-tag">v1.0.0 · Vue3 + Vant4 + Dexie.js</div>
     </div>
+
 
 
 
@@ -116,9 +115,7 @@ async function handleExport() {
   }
 }
 
-async function handleImport() {
-  fileInput.value?.click()
-}
+
 
 async function processFile(file: File) {
   try {
@@ -209,6 +206,30 @@ onMounted(() => {
   font-weight: 600;
 }
 
+/* 导入按钮 */
+.import-btn {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  gap: 12px;
+}
+.import-btn input[type="file"] {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+.import-btn-text {
+  font-size: 14px;
+  color: var(--text);
+}
+.import-btn:active .import-btn-text {
+  opacity: 0.6;
+}
+
 .version-tag {
   text-align: center;
   padding: 20px;
@@ -216,18 +237,4 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-/* 文件输入：覆盖在菜单项上，透明但可点击 */
-.import-item {
-  position: relative;
-}
-.file-input-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  z-index: 10;
-  cursor: pointer;
-}
 </style>
