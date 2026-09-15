@@ -193,7 +193,7 @@ function getDateRange(): { start: string; end: string; trendGroup: 'day' | 'mont
       return {
         start, end,
         trendGroup: 'day',
-        trendLabel: (d: string) => dayjs(d).format('D')
+        trendLabel: (d: string) => dayjs(d).format('M/D')
       }
     }
   }
