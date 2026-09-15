@@ -283,11 +283,11 @@ async function renderCharts() {
           center: ['50%', '50%'],
           label: {
             show: true,
-            position: 'inner',
-            formatter: '{d}%',
-            textStyle: { color: '#fff', fontWeight: 'bold', fontSize: 12 }
+            formatter: '{b}: {d}%',
+            fontSize: 11,
+            color: '#555'
           },
-          labelLine: { show: false },
+          labelLine: { show: true, length: 8, length2: 12, lineStyle: { color: '#ccc' } },
           emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
           data: pieData
         }]
@@ -339,11 +339,11 @@ async function renderCharts() {
           center: ['50%', '50%'],
           label: {
             show: true,
-            position: 'inner',
-            formatter: '{d}%',
-            textStyle: { color: '#fff', fontWeight: 'bold', fontSize: 12 }
+            formatter: '{b}: {d}%',
+            fontSize: 11,
+            color: '#555'
           },
-          labelLine: { show: false },
+          labelLine: { show: true, length: 8, length2: 12, lineStyle: { color: '#ccc' } },
           emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
           data: pieData
         }]
