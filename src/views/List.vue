@@ -531,7 +531,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 8px 8px;
+  padding: 5px 8px 0 8px;
 }
 .date-text {
   font-size: 13px;

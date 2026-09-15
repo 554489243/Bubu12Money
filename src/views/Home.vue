@@ -279,7 +279,7 @@ async function renderCharts() {
         series: [{
           type: 'pie',
           roseType: 'radius',
-          radius: ['20%', '65%'],
+          radius: ['60%', '85%'],
           center: ['50%', '50%'],
           label: { show: false },
           labelLine: { show: false },
@@ -334,7 +334,7 @@ async function renderCharts() {
         series: [{
           type: 'pie',
           roseType: 'radius',
-          radius: ['20%', '65%'],
+          radius: ['60%', '85%'],
           center: ['50%', '50%'],
           label: {
             show: true,

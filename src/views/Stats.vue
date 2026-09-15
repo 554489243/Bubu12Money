@@ -185,7 +185,7 @@ async function renderCharts() {
       pieChart.setOption({
         series: [{
           type: 'pie',
-          radius: ['40%', '65%'],
+          radius: ['60%', '75%'],
           center: ['50%', '50%'],
           data: pieData,
           label: { show: false },
@@ -233,7 +233,7 @@ async function renderCharts() {
       incomePieChart.setOption({
         series: [{
           type: 'pie',
-          radius: ['40%', '65%'],
+          radius: ['60%', '65%'],
           center: ['50%', '50%'],
           data: pieData,
           label: { show: false },
