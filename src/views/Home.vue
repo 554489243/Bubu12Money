@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page">
     <!-- 账本选择 -->
     <div class="book-row">
@@ -36,12 +36,14 @@
         <!-- 趋势图 -->
         <div class="stats-card">
           <div class="stats-title">{{ trendTitle }}收支趋势</div>
+          <div class="stats-subtitle">单位：元</div>
           <div ref="trendChartRef" class="chart-container"></div>
         </div>
 
         <!-- 支出饼图 -->
         <div class="stats-card">
           <div class="stats-title">{{ trendTitle }}支出分类占比</div>
+          <div class="stats-subtitle">共 {{ expenseYuan }} 元</div>
           <div class="chart-wrapper">
             <div ref="pieChartRef" class="chart-container"></div>
             <div v-if="expenseCategoryStats.length === 0" class="chart-empty">暂无支出数据</div>
@@ -59,6 +61,7 @@
         <!-- 收入饼图 -->
         <div class="stats-card">
           <div class="stats-title">{{ trendTitle }}收入分类占比</div>
+          <div class="stats-subtitle">共 {{ incomeYuan }} 元</div>
           <div class="chart-wrapper">
             <div ref="incomePieChartRef" class="chart-container"></div>
             <div v-if="incomeCategoryStats.length === 0" class="chart-empty">暂无收入数据</div>
@@ -205,27 +208,61 @@ async function renderCharts() {
   const bookId = bookStore.isAllBooks ? undefined : bookStore.currentBookId!
   const { start, end, trendGroup, trendLabel } = getDateRange()
 
-  // 趋势图
+  // 趋势图 - 柱状 + 收支差折线
   if (trendChartRef.value) {
     const trendData = await getTrendByDateRange(start, end, bookId, trendGroup)
     const filledData = fillDateGaps(trendData, start, end, trendGroup, trendLabel)
     if (trendChart) { trendChart.dispose(); trendChart = null }
     trendChart = echarts.init(trendChartRef.value, null, { renderer: 'canvas' })
+    const diffData = filledData.map(d => ({ value: Number(((d.income - d.expense) / 100).toFixed(2)) }))
     trendChart.setOption({
-      grid: { top: 20, right: 20, bottom: 30, left: 60 },
-      legend: { data: ['支出', '收入'], top: 0, textStyle: { fontSize: 11 } },
-      xAxis: { type: 'category', data: filledData.map(d => d.label), axisLabel: { fontSize: 11 } },
-      yAxis: { type: 'value', axisLabel: { fontSize: 11, formatter: (v: number) => '￥' + (v / 100).toFixed(0) } },
+      grid: { top: 32, right: 20, bottom: 28, left: 55 },
+      legend: { data: ['支出', '收入', '收支差'], top: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 11, color: '#666' } },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255,255,255,0.95)', borderColor: '#e8e8e8', borderWidth: 1,
+        textStyle: { color: '#333', fontSize: 12 },
+        extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;'
+      },
+      xAxis: {
+        type: 'category',
+        data: filledData.map(d => d.label),
+        axisLine: { lineStyle: { color: '#e8e8e8' } },
+        axisTick: { show: false },
+        axisLabel: { fontSize: 11, color: '#888' }
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#f5f5f5' } },
+        axisLabel: { fontSize: 10, color: '#aaa', formatter: (v: number) => v >= 10000 ? (v / 10000).toFixed(0) + '万' : '￥' + v }
+      },
       series: [
         {
-          name: '支出', type: 'bar', data: filledData.map(d => d.expense),
-          itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#40a9ff' }, { offset: 1, color: '#1989fa' }]), borderRadius: [4, 4, 0, 0] },
-          barWidth: 16
+          name: '支出', type: 'bar',
+          data: filledData.map(d => d.expense),
+          barWidth: 12,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#40a9ff' }, { offset: 1, color: '#1989fa' }]),
+            borderRadius: [3, 3, 0, 0]
+          }
         },
         {
-          name: '收入', type: 'bar', data: filledData.map(d => d.income),
-          itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#6dd480' }, { offset: 1, color: '#07c160' }]), borderRadius: [4, 4, 0, 0] },
-          barWidth: 16
+          name: '收入', type: 'bar',
+          data: filledData.map(d => d.income),
+          barWidth: 12,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#6dd480' }, { offset: 1, color: '#07c160' }]),
+            borderRadius: [3, 3, 0, 0]
+          }
+        },
+        {
+          name: '收支差', type: 'line',
+          data: diffData.map(d => d.value),
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 5,
+          lineStyle: { width: 2, color: '#ff976a', type: 'dashed' },
+          itemStyle: { color: '#ff976a', borderWidth: 2 }
         }
       ]
     })
@@ -263,12 +300,26 @@ async function renderCharts() {
             return `${params.name}<br/>${(params.value / 100).toFixed(2)} 熊熊币<br/>占比 ${params.percent}%`
           },
           backgroundColor: 'rgba(255,255,255,0.95)',
-          borderColor: '#eee',
+          borderColor: '#e8e8e8',
           borderWidth: 1,
-          textStyle: { color: '#333', fontSize: 13 },
-          extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 8px;'
+          textStyle: { color: '#333', fontSize: 12 },
+          extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;'
         },
-        series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }]
+        series: [{
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '50%'],
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%',
+            fontSize: 10,
+            color: '#666',
+            lineHeight: 14
+          },
+          labelLine: { length: 8, length2: 12, lineStyle: { color: '#ddd' } },
+          emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
+          data: pieData
+        }]
       })
     }
   }
@@ -305,12 +356,26 @@ async function renderCharts() {
             return `${params.name}<br/>${(params.value / 100).toFixed(2)} 熊熊币<br/>占比 ${params.percent}%`
           },
           backgroundColor: 'rgba(255,255,255,0.95)',
-          borderColor: '#eee',
+          borderColor: '#e8e8e8',
           borderWidth: 1,
-          textStyle: { color: '#333', fontSize: 13 },
-          extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 8px;'
+          textStyle: { color: '#333', fontSize: 12 },
+          extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;'
         },
-        series: [{ type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'], data: pieData, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } } }]
+        series: [{
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '50%'],
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%',
+            fontSize: 10,
+            color: '#666',
+            lineHeight: 14
+          },
+          labelLine: { length: 8, length2: 12, lineStyle: { color: '#ddd' } },
+          emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
+          data: pieData
+        }]
       })
     }
   }
@@ -398,13 +463,14 @@ watch(view, () => {
 
 .loading-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; font-size: 14px; color: var(--text-secondary); }
 
-.stats-card { background: var(--card); border-radius: var(--radius); padding: 16px; margin: 0 12px 12px; box-shadow: var(--shadow); }
-.stats-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+.stats-card { background: linear-gradient(135deg, #f8fafc, #ffffff); border-radius: var(--radius-lg); padding: 20px; margin: 0 12px 16px; border: 1px solid #e8ecf0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.stats-subtitle { font-size: 11px; color: #999; margin-bottom: 12px; }
+.stats-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
 .chart-wrapper { position: relative; }
 .chart-container { width: 100%; aspect-ratio: 16 / 10; min-height: 160px; }
 .chart-empty { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 13px; }
-.pie-legend { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
-.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.pie-legend { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 4px 0; }
 .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .legend-name { flex: 1; padding: 2px 8px; border-radius: 4px; font-weight: 500; font-size: 11px; }
 .legend-value { font-weight: 600; }
