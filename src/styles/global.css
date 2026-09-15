@@ -28,7 +28,7 @@ html { scroll-behavior: smooth; }
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: '华文行楷', 'STKaiti', 'KaiTi', 'PingFang SC', sans-serif;
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
