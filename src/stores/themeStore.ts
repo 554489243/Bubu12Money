@@ -20,58 +20,67 @@ export interface ThemePreset {
 const STORAGE_KEY = 'themeConfig'
 
 const defaultTheme: ThemeConfig = {
-  primary: '#1989fa',
-  success: '#07c160',
-  danger: '#ee0a24',
-  bg: '#f5f6f8',
-  card: '#ffffff',
-  text: '#323233',
-  textSecondary: '#969799',
-  border: '#ebedf0',
+  primary: '#4F8CFF',
+  success: '#34D399',
+  danger: '#FB7185',
+  bg: '#F8FAFC',
+  card: '#FFFFFF',
+  text: '#1E293B',
+  textSecondary: '#94A3B8',
+  border: '#E2E8F0',
 }
 
 export const presets: ThemePreset[] = [
   {
-    name: '经典蓝白',
-    config: { ...defaultTheme }
-  },
-  {
-    name: '暗夜黑金',
+    name: '清爽蓝',
     config: {
-      primary: '#f0b90b',
-      success: '#07c160',
-      danger: '#ff4d4f',
-      bg: '#141414',
-      card: '#1f1f1f',
-      text: '#f5f5f5',
-      textSecondary: '#888888',
-      border: '#333333',
+      primary: '#4F8CFF',
+      success: '#34D399',
+      danger: '#FB7185',
+      bg: '#F8FAFC',
+      card: '#FFFFFF',
+      text: '#1E293B',
+      textSecondary: '#94A3B8',
+      border: '#E2E8F0',
     }
   },
   {
-    name: '莫兰迪',
+    name: '薄荷绿',
     config: {
-      primary: '#a8b5c2',
-      success: '#86a873',
-      danger: '#c49a8a',
-      bg: '#e8e4df',
-      card: '#f5f2ed',
-      text: '#4a4a4a',
-      textSecondary: '#8a8a8a',
-      border: '#d0cbc4',
+      primary: '#34D399',
+      success: '#22D3EE',
+      danger: '#F87171',
+      bg: '#F0FDF9',
+      card: '#FFFFFF',
+      text: '#134E4A',
+      textSecondary: '#6B7280',
+      border: '#CCFBF1',
     }
   },
   {
-    name: '抹茶绿',
+    name: '珊瑚橙',
     config: {
-      success: '#86a873',
-      primary: '#7eb87e',
-      danger: '#d4867a',
-      bg: '#f0f5ed',
-      card: '#ffffff',
-      text: '#3d4a3a',
-      textSecondary: '#7a8a78',
-      border: '#d4e0cf',
+      primary: '#FB923C',
+      success: '#34D399',
+      danger: '#F43F5E',
+      bg: '#FFF8F5',
+      card: '#FFFFFF',
+      text: '#431407',
+      textSecondary: '#9A3412',
+      border: '#FED7AA',
+    }
+  },
+  {
+    name: '薰衣草',
+    config: {
+      primary: '#A78BFA',
+      success: '#34D399',
+      danger: '#FB7185',
+      bg: '#FAF5FF',
+      card: '#FFFFFF',
+      text: '#3B0764',
+      textSecondary: '#7C3AED',
+      border: '#E9D5FF',
     }
   },
 ]

@@ -174,13 +174,13 @@ onMounted(() => {
 
 <style scoped>
 .profile-header {
-  background: linear-gradient(135deg, var(--primary), #40a9ff);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   border-radius: var(--radius-lg);
   padding: 24px 20px;
   color: #fff;
   text-align: center;
   margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(25, 137, 250, 0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 .profile-header .avatar {
   width: 60px; height: 60px;

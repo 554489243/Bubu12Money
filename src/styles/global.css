@@ -1,17 +1,17 @@
 /* ===== 全局基础 ===== */
 :root {
-  --primary: #1989fa;
+  --primary: #4F8CFF;
   --primary-light: #e8f4ff;
-  --success: #07c160;
+  --success: #34D399;
   --success-light: #e6f9ed;
-  --danger: #ee0a24;
+  --danger: #FB7185;
   --danger-light: #fde2e6;
   --warning: #ff976a;
-  --bg: #f5f6f8;
+  --bg: #F8FAFC;
   --card: #ffffff;
-  --text: #323233;
-  --text-secondary: #969799;
-  --border: #ebedf0;
+  --text: #1E293B;
+  --text-secondary: #94A3B8;
+  --border: #E2E8F0;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --radius: 12px;

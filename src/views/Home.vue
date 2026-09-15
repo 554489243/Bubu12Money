@@ -279,7 +279,7 @@ async function renderCharts() {
         series: [{
           type: 'pie',
           roseType: 'radius',
-          radius: ['60%', '85%'],
+          radius: ['40%', '85%'],
           center: ['50%', '50%'],
           label: { show: false },
           labelLine: { show: false },
@@ -334,7 +334,7 @@ async function renderCharts() {
         series: [{
           type: 'pie',
           roseType: 'radius',
-          radius: ['60%', '85%'],
+          radius: ['40%', '85%'],
           center: ['50%', '50%'],
           label: {
             show: true,
@@ -417,7 +417,7 @@ watch(view, () => {
   padding: 20px;
   color: #fff;
   margin: 12px;
-  box-shadow: 0 4px 20px rgba(25, 137, 250, 0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 .book-row { padding: 12px 12px 8px; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
 .book-row-img { width: 33px; height: 33px; border-radius: 6px; object-fit: cover; }
@@ -433,7 +433,7 @@ watch(view, () => {
 
 .loading-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; font-size: 14px; color: var(--text-secondary); }
 
-.stats-card { background: linear-gradient(135deg, #f8fafc, #ffffff); border-radius: var(--radius-lg); padding: 20px; margin: 0 12px 16px; border: 1px solid #e8ecf0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.stats-card { background: var(--card); border-radius: var(--radius-lg); padding: 20px; margin: 0 12px 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .stats-subtitle { font-size: 11px; color: #999; margin-bottom: 12px; }
 .stats-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
 .chart-wrapper { position: relative; }
