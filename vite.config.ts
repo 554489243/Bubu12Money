@@ -4,16 +4,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  base: '/Bubu12Money/',
+  base: '/Bubu12Money-dev/',
   plugins: [
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: '记账本',
-        short_name: '记账',
+        name: '记账本-测试',
+        short_name: '记账测试',
         description: '简单好用的个人记账工具',
-        theme_color: '#1989fa',
+        theme_color: '#f59e0b',
         background_color: '#f5f6f8',
         display: 'standalone',
         icons: [

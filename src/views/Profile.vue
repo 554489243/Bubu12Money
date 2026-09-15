@@ -3,8 +3,8 @@
     <div class="page-content">
       <div class="profile-header">
         <div class="avatar">📒</div>
-        <div class="name">记账本</div>
-        <div class="desc">简单好用的个人记账工具</div>
+        <div class="name">记账本-测试</div>
+        <div class="desc">测试版本，功能验证后发布到正式版</div>
       </div>
 
       <div class="menu-section">
@@ -55,14 +55,14 @@
           <div class="label">用户手册</div>
           <div class="arrow">›</div>
         </div>
-        <div class="menu-item" @click="showToast('记账本 v1.0.0\nVue3 + Vant4 + Dexie.js')">
+        <div class="menu-item" @click="showToast('记账本-测试 v1.0.0\nVue3 + Vant4 + Dexie.js')">
           <div class="icon">ℹ️</div>
           <div class="label">关于</div>
           <div class="arrow">›</div>
         </div>
       </div>
 
-      <div class="version-tag">v1.0.0 · Vue3 + Vant4 + Dexie.js</div>
+      <div class="version-tag">v1.0.0 · 测试版 · Vue3 + Vant4 + Dexie.js</div>
     </div>
 
 
