@@ -123,9 +123,15 @@ async function handleImport() {
 }
 
 function openInBrowser() {
-  // 在系统浏览器中打开当前页面（用于 PWA 导入失败时）
-  const url = window.location.href
-  window.open(url, '_blank')
+  const url = window.location.origin + window.location.pathname
+  showConfirmDialog({
+    title: '在浏览器中打开',
+    message: '复制下方地址到手机浏览器中打开，即可正常导入：\n\n' + url,
+    confirmButtonText: '知道了',
+    confirmButtonColor: 'var(--primary)',
+    showCancelButton: false,
+    messageAlign: 'left',
+  })
 }
 
 function setupImportListener() {
