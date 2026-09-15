@@ -28,7 +28,7 @@
         </div>
         <div class="menu-item" @click="handleImport">
           <div class="icon">📥</div>
-          <div class="label">导入数据</div>
+          <div class="label">导入数据<span class="import-hint"> 无反应请进浏览器</span></div>
           <div class="arrow">›</div>
         </div>
         <div class="menu-item" @click="handleArchive">
@@ -194,6 +194,7 @@ onMounted(() => {
 .menu-item:active { background: var(--bg); }
 .menu-item .icon { font-size: 20px; }
 .menu-item .label { flex: 1; font-size: 14px; }
+.import-hint { font-size: 10px; color: var(--text-secondary); margin-left: 4px; }
 .menu-item .arrow { color: var(--text-secondary); font-size: 12px; }
 .archive-info {
   display: flex;
