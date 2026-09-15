@@ -214,10 +214,10 @@ async function renderCharts() {
     const filledData = fillDateGaps(trendData, start, end, trendGroup, trendLabel)
     if (trendChart) { trendChart.dispose(); trendChart = null }
     trendChart = echarts.init(trendChartRef.value, null, { renderer: 'canvas' })
-    const diffData = filledData.map(d => ({ value: Number(((d.income - d.expense) / 100).toFixed(2)) }))
+    const barW = trendGroup === 'day' ? Math.max(4, Math.min(12, 200 / filledData.length)) : 12
     trendChart.setOption({
-      grid: { top: 32, right: 20, bottom: 28, left: 55 },
-      legend: { data: ['支出', '收入', '收支差'], top: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 11, color: '#666' } },
+      grid: { top: 28, right: 16, bottom: 28, left: 16 },
+      legend: { data: ['支出', '收入'], top: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 11, color: '#666' } },
       tooltip: {
         trigger: 'axis',
         backgroundColor: 'rgba(255,255,255,0.95)', borderColor: '#e8e8e8', borderWidth: 1,
@@ -231,39 +231,10 @@ async function renderCharts() {
         axisTick: { show: false },
         axisLabel: { fontSize: 11, color: '#888' }
       },
-      yAxis: {
-        type: 'value',
-        splitLine: { lineStyle: { color: '#f5f5f5' } },
-        axisLabel: { fontSize: 10, color: '#aaa', formatter: (v: number) => v >= 10000 ? (v / 10000).toFixed(0) + '万' : '￥' + v }
-      },
+      yAxis: { type: 'value', show: false, min: 0 },
       series: [
-        {
-          name: '支出', type: 'bar',
-          data: filledData.map(d => d.expense),
-          barWidth: 12,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#40a9ff' }, { offset: 1, color: '#1989fa' }]),
-            borderRadius: [3, 3, 0, 0]
-          }
-        },
-        {
-          name: '收入', type: 'bar',
-          data: filledData.map(d => d.income),
-          barWidth: 12,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#6dd480' }, { offset: 1, color: '#07c160' }]),
-            borderRadius: [3, 3, 0, 0]
-          }
-        },
-        {
-          name: '收支差', type: 'line',
-          data: diffData.map(d => d.value),
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 5,
-          lineStyle: { width: 2, color: '#ff976a', type: 'dashed' },
-          itemStyle: { color: '#ff976a', borderWidth: 2 }
-        }
+        { name: '支出', type: 'bar', data: filledData.map(d => d.expense), barWidth: barW, itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#40a9ff' }, { offset: 1, color: '#1989fa' }]), borderRadius: [3, 3, 0, 0] } },
+        { name: '收入', type: 'bar', data: filledData.map(d => d.income), barWidth: barW, itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#6dd480' }, { offset: 1, color: '#07c160' }]), borderRadius: [3, 3, 0, 0] } }
       ]
     })
   }
@@ -307,16 +278,16 @@ async function renderCharts() {
         },
         series: [{
           type: 'pie',
-          radius: ['42%', '68%'],
+          roseType: 'radius',
+          radius: ['25%', '58%'],
           center: ['50%', '50%'],
           label: {
             show: true,
-            formatter: '{b}\n{d}%',
-            fontSize: 10,
-            color: '#666',
-            lineHeight: 14
+            position: 'inner',
+            formatter: '{d}%',
+            textStyle: { color: '#fff', fontWeight: 'bold', fontSize: 12 }
           },
-          labelLine: { length: 8, length2: 12, lineStyle: { color: '#ddd' } },
+          labelLine: { show: false },
           emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
           data: pieData
         }]
@@ -363,16 +334,16 @@ async function renderCharts() {
         },
         series: [{
           type: 'pie',
-          radius: ['42%', '68%'],
+          roseType: 'radius',
+          radius: ['25%', '58%'],
           center: ['50%', '50%'],
           label: {
             show: true,
-            formatter: '{b}\n{d}%',
-            fontSize: 10,
-            color: '#666',
-            lineHeight: 14
+            position: 'inner',
+            formatter: '{d}%',
+            textStyle: { color: '#fff', fontWeight: 'bold', fontSize: 12 }
           },
-          labelLine: { length: 8, length2: 12, lineStyle: { color: '#ddd' } },
+          labelLine: { show: false },
           emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
           data: pieData
         }]
