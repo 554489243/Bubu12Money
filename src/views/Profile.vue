@@ -26,9 +26,10 @@
           <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
-        <div class="menu-item" @click="handleImport">
+        <div class="menu-item import-item">
           <div class="icon">📥</div>
           <div class="label">导入数据</div>
+          <input ref="fileInput" type="file" accept=".json" class="file-input-overlay" @change="onFileSelected" />
           <div class="arrow">›</div>
         </div>
         <div class="menu-item" @click="handleArchive">
@@ -67,8 +68,6 @@
 
 
 
-    <!-- 隐藏的文件输入 -->
-    <input ref="fileInput" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
 
     <TabBar />
   </div>
@@ -217,14 +216,18 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-/* 文件输入：PWA 兼容隐藏（保持可点击） */
-.file-input-hidden {
-  position: fixed;
-  top: -9999px;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
+/* 文件输入：覆盖在菜单项上，透明但可点击 */
+.import-item {
+  position: relative;
+}
+.file-input-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  pointer-events: auto;
+  z-index: 10;
+  cursor: pointer;
 }
 </style>
