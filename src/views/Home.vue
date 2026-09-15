@@ -35,40 +35,43 @@
 
         <!-- 趋势图 -->
         <div class="stats-card">
-          <div class="stats-title">TREND</div>
+          <div class="stats-title">{{ trendTitle }}收支趋势</div>
+          <div class="stats-subtitle">单位：元</div>
           <div ref="trendChartRef" class="chart-container"></div>
         </div>
 
-        <!-- 支出排名 -->
+        <!-- 支出饼图 -->
         <div class="stats-card">
-          <div class="stats-title">EXPENSE</div>
-          <div v-if="expenseCategoryStats.length === 0" class="chart-empty">暂无支出数据</div>
-          <div v-else class="ranking-list">
-            <div v-for="item in expenseCategoryStats" :key="item.categoryId" class="ranking-item">
-              <div class="ranking-icon" :style="{ background: item.color + '18' }">{{ item.icon }}</div>
-              <div class="ranking-info">
-                <div class="ranking-name">{{ item.name }}</div>
-                <div class="ranking-bar-bg"><div class="ranking-bar" :style="{ width: item.percent + '%', background: item.color }"></div></div>
-              </div>
-              <div class="ranking-value">￥{{ (item.amount / 100).toFixed(0) }}</div>
-              <div class="ranking-pct">{{ item.percent }}%</div>
+          <div class="stats-title">{{ trendTitle }}支出分类占比</div>
+          <div class="stats-subtitle">共 {{ expenseYuan }} 元</div>
+          <div class="chart-wrapper">
+            <div ref="pieChartRef" class="chart-container"></div>
+            <div v-if="expenseCategoryStats.length === 0" class="chart-empty">暂无支出数据</div>
+          </div>
+          <div v-if="expenseCategoryStats.length > 0" class="pie-legend">
+            <div v-for="item in expenseCategoryStats" :key="item.categoryId" class="legend-item">
+              <div class="legend-dot" :style="{ background: item.color }"></div>
+              <span class="legend-name" :style="{ background: item.color + '15', color: item.color }">{{ item.name }}</span>
+              <span class="legend-value">{{ formatAmount(item.amount) }}</span>
+              <span class="legend-percent">{{ item.percent }}%</span>
             </div>
           </div>
         </div>
 
-        <!-- 收入排名 -->
+        <!-- 收入饼图 -->
         <div class="stats-card">
-          <div class="stats-title">INCOME</div>
-          <div v-if="incomeCategoryStats.length === 0" class="chart-empty">暂无收入数据</div>
-          <div v-else class="ranking-list">
-            <div v-for="item in incomeCategoryStats" :key="item.categoryId" class="ranking-item">
-              <div class="ranking-icon" :style="{ background: item.color + '18' }">{{ item.icon }}</div>
-              <div class="ranking-info">
-                <div class="ranking-name">{{ item.name }}</div>
-                <div class="ranking-bar-bg"><div class="ranking-bar" :style="{ width: item.percent + '%', background: item.color }"></div></div>
-              </div>
-              <div class="ranking-value">￥{{ (item.amount / 100).toFixed(0) }}</div>
-              <div class="ranking-pct">{{ item.percent }}%</div>
+          <div class="stats-title">{{ trendTitle }}收入分类占比</div>
+          <div class="stats-subtitle">共 {{ incomeYuan }} 元</div>
+          <div class="chart-wrapper">
+            <div ref="incomePieChartRef" class="chart-container"></div>
+            <div v-if="incomeCategoryStats.length === 0" class="chart-empty">暂无收入数据</div>
+          </div>
+          <div v-if="incomeCategoryStats.length > 0" class="pie-legend">
+            <div v-for="item in incomeCategoryStats" :key="item.categoryId" class="legend-item">
+              <div class="legend-dot" :style="{ background: item.color }"></div>
+              <span class="legend-name" :style="{ background: item.color + '15', color: item.color }">{{ item.name }}</span>
+              <span class="legend-value">{{ formatAmount(item.amount) }}</span>
+              <span class="legend-percent">{{ item.percent }}%</span>
             </div>
           </div>
         </div>
@@ -102,13 +105,17 @@ const loading = ref(true)
 
 // 图表引用
 const trendChartRef = ref<HTMLElement>()
+const pieChartRef = ref<HTMLElement>()
+const incomePieChartRef = ref<HTMLElement>()
 let trendChart: echarts.ECharts | null = null
+let pieChart: echarts.ECharts | null = null
+let incomePieChart: echarts.ECharts | null = null
 
 const expenseCategoryStats = ref<{
-  categoryId: number; name: string; icon: string; amount: number; percent: number; color: string
+  categoryId: number; name: string; amount: number; percent: number; color: string
 }[]>([])
 const incomeCategoryStats = ref<{
-  categoryId: number; name: string; icon: string; amount: number; percent: number; color: string
+  categoryId: number; name: string; amount: number; percent: number; color: string
 }[]>([])
 
 
@@ -207,44 +214,66 @@ async function renderCharts() {
     const filledData = fillDateGaps(trendData, start, end, trendGroup, trendLabel)
     if (trendChart) { trendChart.dispose(); trendChart = null }
     trendChart = echarts.init(trendChartRef.value, null, { renderer: 'canvas' })
+    const diffData = filledData.map(d => ({ value: Number(((d.income - d.expense) / 100).toFixed(2)) }))
     trendChart.setOption({
-      grid: { top: 16, right: 16, bottom: 24, left: 40 },
+      grid: { top: 32, right: 20, bottom: 28, left: 55 },
+      legend: { data: ['支出', '收入', '收支差'], top: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontSize: 11, color: '#666' } },
       tooltip: {
         trigger: 'axis',
-        backgroundColor: 'rgba(255,255,255,0.95)', borderColor: '#eee', borderWidth: 1,
+        backgroundColor: 'rgba(255,255,255,0.95)', borderColor: '#e8e8e8', borderWidth: 1,
         textStyle: { color: '#333', fontSize: 12 },
-        extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 6px;'
+        extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;'
       },
       xAxis: {
         type: 'category',
         data: filledData.map(d => d.label),
-        axisLine: { show: false },
+        axisLine: { lineStyle: { color: '#e8e8e8' } },
         axisTick: { show: false },
-        axisLabel: { fontSize: 11, color: '#bbb' }
+        axisLabel: { fontSize: 11, color: '#888' }
       },
-      yAxis: { type: 'value', show: false },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#f5f5f5' } },
+        axisLabel: { fontSize: 10, color: '#aaa', formatter: (v: number) => v >= 10000 ? (v / 10000).toFixed(0) + '万' : '￥' + v }
+      },
       series: [
         {
           name: '支出', type: 'bar',
           data: filledData.map(d => d.expense),
-          barWidth: 4,
-          itemStyle: { color: '#1989fa', borderRadius: [2, 2, 0, 0] }
+          barWidth: 12,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#40a9ff' }, { offset: 1, color: '#1989fa' }]),
+            borderRadius: [3, 3, 0, 0]
+          }
         },
         {
           name: '收入', type: 'bar',
           data: filledData.map(d => d.income),
-          barWidth: 4,
-          itemStyle: { color: '#07c160', borderRadius: [2, 2, 0, 0] }
+          barWidth: 12,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#6dd480' }, { offset: 1, color: '#07c160' }]),
+            borderRadius: [3, 3, 0, 0]
+          }
+        },
+        {
+          name: '收支差', type: 'line',
+          data: diffData.map(d => d.value),
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 5,
+          lineStyle: { width: 2, color: '#ff976a', type: 'dashed' },
+          itemStyle: { color: '#ff976a', borderWidth: 2 }
         }
       ]
     })
   }
 
-  // 支出排名数据
-  {
+  // 支出饼图
+  if (pieChartRef.value) {
     const stats = await getCategoryStatsByDateRange(start, end, 'expense', bookId)
     let total = 0
     stats.forEach(v => total += v)
+    const pieData: { name: string; value: number; itemStyle: { color: string } }[] = []
     const legendData: typeof expenseCategoryStats.value = []
     // 按父分类聚合
     const parentMap = new Map<number, number>()
@@ -256,17 +285,51 @@ async function renderCharts() {
       const cat = categoryStore.getById(parentId)
       if (cat && amount > 0) {
         const color = getCategoryColor(cat.name).bg
-        legendData.push({ categoryId: parentId, name: cat.name, icon: cat.icon, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
+        pieData.push({ name: cat.name, value: amount, itemStyle: { color } })
+        legendData.push({ categoryId: parentId, name: `${cat.icon} ${cat.name}`, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
       }
     })
     expenseCategoryStats.value = legendData.sort((a, b) => b.amount - a.amount)
+    if (pieChart) { pieChart.dispose(); pieChart = null }
+    if (pieData.length > 0) {
+      pieChart = echarts.init(pieChartRef.value, null, { renderer: 'canvas' })
+      pieChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: (params: any) => {
+            return `${params.name}<br/>${(params.value / 100).toFixed(2)} 熊熊币<br/>占比 ${params.percent}%`
+          },
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          borderColor: '#e8e8e8',
+          borderWidth: 1,
+          textStyle: { color: '#333', fontSize: 12 },
+          extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;'
+        },
+        series: [{
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '50%'],
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%',
+            fontSize: 10,
+            color: '#666',
+            lineHeight: 14
+          },
+          labelLine: { length: 8, length2: 12, lineStyle: { color: '#ddd' } },
+          emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
+          data: pieData
+        }]
+      })
+    }
   }
 
-  // 收入排名数据
-  {
+  // 收入饼图
+  if (incomePieChartRef.value) {
     const stats = await getCategoryStatsByDateRange(start, end, 'income', bookId)
     let total = 0
     stats.forEach(v => total += v)
+    const pieData: { name: string; value: number; itemStyle: { color: string } }[] = []
     const legendData: typeof incomeCategoryStats.value = []
     // 按父分类聚合
     const parentMap = new Map<number, number>()
@@ -278,11 +341,45 @@ async function renderCharts() {
       const cat = categoryStore.getById(parentId)
       if (cat && amount > 0) {
         const color = getCategoryColor(cat.name).bg
-        legendData.push({ categoryId: parentId, name: cat.name, icon: cat.icon, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
+        pieData.push({ name: cat.name, value: amount, itemStyle: { color } })
+        legendData.push({ categoryId: parentId, name: `${cat.icon} ${cat.name}`, amount, percent: total > 0 ? Math.round((amount / total) * 100) : 0, color })
       }
     })
     incomeCategoryStats.value = legendData.sort((a, b) => b.amount - a.amount)
+    if (incomePieChart) { incomePieChart.dispose(); incomePieChart = null }
+    if (pieData.length > 0) {
+      incomePieChart = echarts.init(incomePieChartRef.value, null, { renderer: 'canvas' })
+      incomePieChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: (params: any) => {
+            return `${params.name}<br/>${(params.value / 100).toFixed(2)} 熊熊币<br/>占比 ${params.percent}%`
+          },
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          borderColor: '#e8e8e8',
+          borderWidth: 1,
+          textStyle: { color: '#333', fontSize: 12 },
+          extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px;'
+        },
+        series: [{
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '50%'],
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%',
+            fontSize: 10,
+            color: '#666',
+            lineHeight: 14
+          },
+          labelLine: { length: 8, length2: 12, lineStyle: { color: '#ddd' } },
+          emphasis: { scaleSize: 10, itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' } },
+          data: pieData
+        }]
+      })
+    }
   }
+
   loading.value = false
 }
 
@@ -318,6 +415,8 @@ function fillDateGaps(
 
 function handleResize() {
   trendChart?.resize()
+  pieChart?.resize()
+  incomePieChart?.resize()
 }
 
 onMounted(() => {
@@ -328,6 +427,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   trendChart?.dispose()
+  pieChart?.dispose()
+  incomePieChart?.dispose()
 })
 
 watch(() => bookStore.currentBookId, () => {
@@ -362,19 +463,16 @@ watch(view, () => {
 
 .loading-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; font-size: 14px; color: var(--text-secondary); }
 
-.stats-card { background: #fff; border-radius: 24px; padding: 24px; margin: 0 12px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.stats-card { background: linear-gradient(135deg, #f8fafc, #ffffff); border-radius: var(--radius-lg); padding: 20px; margin: 0 12px 16px; border: 1px solid #e8ecf0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 .stats-subtitle { font-size: 11px; color: #999; margin-bottom: 12px; }
-.stats-title { font-size: 12px; font-weight: 500; color: #999; margin-bottom: 16px; letter-spacing: 2px; text-transform: uppercase; }
+.stats-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
 .chart-wrapper { position: relative; }
 .chart-container { width: 100%; aspect-ratio: 16 / 10; min-height: 160px; }
-.ranking-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
-.ranking-value { font-size: 14px; font-weight: 600; color: #333; white-space: nowrap; }
-.ranking-pct { font-size: 11px; color: #999; width: 36px; text-align: right; }
 .chart-empty { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 13px; }
-.ranking-list { display: flex; flex-direction: column; gap: 12px; }
-.ranking-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
-.ranking-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.ranking-info { flex: 1; min-width: 0; }
-.ranking-name { font-size: 13px; font-weight: 500; color: #333; margin-bottom: 4px; }
-.ranking-bar-bg { height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; }
+.pie-legend { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 4px 0; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.legend-name { flex: 1; padding: 2px 8px; border-radius: 4px; font-weight: 500; font-size: 11px; }
+.legend-value { font-weight: 600; }
+.legend-percent { color: var(--text-secondary); width: 36px; text-align: right; }
 </style>
