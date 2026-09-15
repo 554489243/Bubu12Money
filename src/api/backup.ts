@@ -99,6 +99,7 @@ export async function importData(data: BackupData): Promise<void> {
 
 /**
  * 自动备份（月初/月半检测，同一天只备一次）
+ * 静默保存到 localStorage，不弹窗不分享
  */
 export async function autoBackup(): Promise<boolean> {
   const day = new Date().getDate()
@@ -112,10 +113,9 @@ export async function autoBackup(): Promise<boolean> {
 
   try {
     const data = await exportData()
-    const result = await downloadBackup(data)
-    if (result !== 'shown') {
-      localStorage.setItem('lastAutoBackup', today)
-    }
+    // 静默保存到 localStorage（不触发下载/分享弹窗）
+    localStorage.setItem('autoBackup_' + today, JSON.stringify(data))
+    localStorage.setItem('lastAutoBackup', today)
     return true
   } catch {
     return false
