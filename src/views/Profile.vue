@@ -26,14 +26,11 @@
           <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
-        <label class="import-label">
-          <div class="menu-item">
-            <div class="icon">📥</div>
-            <div class="label">导入数据</div>
-            <div class="arrow">›</div>
-          </div>
-          <input ref="fileInput" type="file" accept=".json" @change="onFileSelected" class="import-input-visible" />
-        </label>
+        <div class="menu-item" @click="handleImport">
+          <div class="icon">📥</div>
+          <div class="label">导入数据</div>
+          <div class="arrow">›</div>
+        </div>
         <div class="menu-item" @click="handleArchive">
           <div class="icon">📦</div>
           <div class="label">数据归档</div>
@@ -85,7 +82,6 @@ import { exportData, importData, downloadBackup, mergeData } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
-const fileInput = ref<HTMLInputElement>()
 
 async function refreshArchivable() {
   archivableCount.value = await recordStore.countArchivable()
@@ -121,39 +117,39 @@ async function handleExport() {
 
 
 
-async function processFile(file: File) {
-  try {
-    const text = await file.text()
-    const data = JSON.parse(text)
-    if (!data.version || !data.records) {
-      showToast('无效的备份文件')
-      return
-    }
-    await showConfirmDialog({
-      title: '导入数据',
-      message: '将合并备份数据到当前账本（自动去重，不会丢失现有数据）',
-      confirmButtonText: '合并导入',
-      confirmButtonColor: 'var(--primary)'
-    })
-    const result = await mergeData(data)
-    showToast(`导入完成：${result.records} 条记录，${result.categories} 个分类，${result.books} 个账本`)
-    setTimeout(() => location.reload(), 1500)
-  } catch (e: any) {
-    showToast(e.message || '导入失败')
-  } finally {
-    if (fileInput.value) fileInput.value.value = ''
-  }
+async function handleImport() {
+  // 打开浏览器原生文件选择页面（绕过小米 PWA WebView 限制）
+  window.open('import.html', '_blank', 'width=400,height=500')
 }
 
-async function onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-  await processFile(file)
+function setupImportListener() {
+  window.addEventListener('message', async (e) => {
+    if (e.data?.type === 'import-backup') {
+      try {
+        const data = JSON.parse(e.data.content)
+        if (!data.version || !data.records) {
+          showToast('无效的备份文件')
+          return
+        }
+        await showConfirmDialog({
+          title: '导入数据',
+          message: '将合并备份数据到当前账本（自动去重，不会丢失现有数据）',
+          confirmButtonText: '合并导入',
+          confirmButtonColor: 'var(--primary)'
+        })
+        const result = await mergeData(data)
+        showToast(`导入完成：${result.records} 条记录，${result.categories} 个分类，${result.books} 个账本`)
+        setTimeout(() => location.reload(), 1500)
+      } catch (err: any) {
+        showToast(err.message || '导入失败')
+      }
+    }
+  })
 }
 
 onMounted(() => {
   refreshArchivable()
+  setupImportListener()
 })
 </script>
 
@@ -208,28 +204,6 @@ onMounted(() => {
   font-size: 11px;
   color: var(--warning);
   font-weight: 600;
-}
-
-/* 导入：label 包裹菜单项 + 可见文件输入 */
-.import-label {
-  display: block;
-  position: relative;
-  cursor: pointer;
-}
-.import-label .menu-item {
-  margin: 0;
-  border-radius: 0;
-}
-.import-input-visible {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.01;
-  cursor: pointer;
-  font-size: 100px;
-  z-index: 10;
 }
 
 .version-tag {
