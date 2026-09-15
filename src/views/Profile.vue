@@ -42,6 +42,14 @@
       </div>
 
       <div class="menu-section">
+        <div class="menu-item" @click="$router.push('/theme')">
+          <div class="icon">🎨</div>
+          <div class="label">主题设置</div>
+          <div class="arrow">›</div>
+        </div>
+      </div>
+
+      <div class="menu-section">
         <div class="menu-item" @click="$router.push('/manual')">
           <div class="icon">📖</div>
           <div class="label">用户手册</div>
