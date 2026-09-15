@@ -23,7 +23,7 @@
       <div class="menu-section">
         <div class="menu-item" @click="handleExport">
           <div class="icon">📤</div>
-          <div class="label">导出数据<a class="import-link" @click.stop="openExportInBrowser">浏览器打开</a></div>
+          <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
         <div class="menu-item" @click="handleImport">
@@ -70,6 +70,19 @@
 
 
     <TabBar />
+    <van-popup v-model:show="showExportPopup" position="bottom" :style="{ height: '80%' }" round>
+      <div class="export-popup">
+        <div class="export-header">
+          <h3>📤 {{ exportJsonFilename }}</h3>
+          <p>长按下方区域 → 全选 → 复制保存</p>
+        </div>
+        <textarea readonly class="export-textarea" :value="exportJsonText" />
+        <div class="export-actions">
+          <van-button type="primary" block @click="copyExportJson">复制全部</van-button>
+          <van-button plain block @click="showExportPopup = false" style="margin-top:8px">关闭</van-button>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
@@ -82,6 +95,9 @@ import { exportData, importData, downloadBackup, mergeData } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
+const showExportPopup = ref(false)
+const exportJsonText = ref('')
+const exportJsonFilename = ref('')
 
 async function refreshArchivable() {
   archivableCount.value = await recordStore.countArchivable()
@@ -111,7 +127,10 @@ async function handleExport() {
   } else if (result === 'saved') {
     showToast('备份已保存')
   } else {
-    showToast('请在弹出的窗口中保存文件')
+    // PWA 内弹窗显示 JSON，用户可复制
+    exportJsonText.value = (downloadBackup as any)._lastJson || ''
+    exportJsonFilename.value = (downloadBackup as any)._lastFilename || ''
+    showExportPopup.value = true
   }
 }
 
@@ -134,16 +153,7 @@ function openInBrowser() {
   })
 }
 
-async function openExportInBrowser() {
-  const data = await exportData()
-  const json = JSON.stringify(data, null, 2)
-  const date = new Date().toISOString().slice(0, 10)
-  const filename = `记账本备份_${date}.json`
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;background:#f5f6f8}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;border:1px solid #e8e8e8}h3{color:#333}.btn{display:inline-block;padding:10px 20px;background:#1989fa;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;margin:12px 0}</style></head><body><h3>📤 ${filename}</h3><p>长按下方区域 → 全选 → 复制保存</p><button class="btn" onclick="this.nextElementSibling.select();document.execCommand('copy');">复制全部</button><pre contenteditable>${json.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></body></html>`
-  const blob = new Blob([html], { type: 'text/html' })
-  const url = URL.createObjectURL(blob)
-  window.open(url, '_blank')
-}
+
 
 function setupImportListener() {
   window.addEventListener('message', async (e) => {
@@ -174,6 +184,21 @@ onMounted(() => {
   refreshArchivable()
   setupImportListener()
 })
+
+async function copyExportJson() {
+  try {
+    await navigator.clipboard.writeText(exportJsonText.value)
+    showToast('已复制到剪贴板')
+  } catch {
+    // 降级：选中 textarea
+    const ta = document.querySelector('.export-textarea') as HTMLTextAreaElement
+    if (ta) {
+      ta.select()
+      document.execCommand('copy')
+      showToast('已复制到剪贴板')
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -235,6 +260,42 @@ onMounted(() => {
   padding: 20px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.export-popup {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.export-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.export-header h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+.export-header p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.export-textarea {
+  flex: 1;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 11px;
+  resize: none;
+  background: #f8f8f8;
+  color: #333;
+  min-height: 0;
+}
+.export-actions {
+  margin-top: 12px;
 }
 
 </style>

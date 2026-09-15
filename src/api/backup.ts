@@ -93,7 +93,6 @@ export async function importData(data: BackupData): Promise<void> {
 
 /**
  * 自动备份（月初/月半检测，同一天只备一次）
- * 静默保存到 localStorage，不弹窗不分享
  */
 export async function autoBackup(): Promise<boolean> {
   const day = new Date().getDate()
@@ -115,15 +114,15 @@ export async function autoBackup(): Promise<boolean> {
 
 /**
  * 下载备份文件
- * 优先用系统分享（浏览器环境），PWA 内直接新窗口打开 JSON
+ * 返回 'shared' | 'saved' | 'popup' 表示使用的导出方式
  */
-export async function downloadBackup(data: BackupData): Promise<'shared' | 'saved' | 'shown'> {
+export async function downloadBackup(data: BackupData): Promise<'shared' | 'saved' | 'popup'> {
   const json = JSON.stringify(data, null, 2)
   const date = new Date().toISOString().slice(0, 10)
   const filename = `记账本备份_${date}.json`
   const blob = new Blob([json], { type: 'application/json' })
 
-  // 方式1：系统分享面板（浏览器环境）
+  // 方式1：系统分享面板
   if (navigator.share && navigator.canShare?.({
     files: [new File([blob], filename, { type: 'application/json' })]
   })) {
@@ -139,7 +138,7 @@ export async function downloadBackup(data: BackupData): Promise<'shared' | 'save
     }
   }
 
-  // 方式2：文件保存API（File System Access，浏览器环境）
+  // 方式2：文件保存API
   if ('showSaveFilePicker' in window) {
     try {
       const handle = await (window as any).showSaveFilePicker({
@@ -155,10 +154,9 @@ export async function downloadBackup(data: BackupData): Promise<'shared' | 'save
     }
   }
 
-  // 方式3：PWA 内 → 打开浏览器窗口导出页面
-  const exportUrl = `data:text/html;charset=utf-8,` + encodeURIComponent(
-    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title><style>body{font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;background:#f5f6f8}pre{background:#fff;padding:16px;border-radius:8px;overflow:auto;border:1px solid #e8e8e8;max-height:70vh}h3{color:#333}.btn{display:inline-block;padding:10px 20px;background:#1989fa;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;margin:12px 0}</style></head><body><h3>📤 ${filename}</h3><p>请长按下方区域 → 全选 → 复制，或点击按钮保存</p><button class="btn" id="saveBtn">保存文件</button><pre id="content"></pre><script>document.getElementById('content').textContent=${JSON.stringify(json)};document.getElementById('saveBtn').onclick=function(){var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(${JSON.stringify(json)});a.download='${filename}';a.click()};</script></body></html>`
-  )
-  window.open(exportUrl, '_blank')
-  return 'shown'
+  // 方式3：返回 JSON 字符串，由调用方决定如何展示
+  // 将数据存到临时变量，供 Profile.vue 弹窗使用
+  ;(downloadBackup as any)._lastJson = json
+  ;(downloadBackup as any)._lastFilename = filename
+  return 'popup'
 }
