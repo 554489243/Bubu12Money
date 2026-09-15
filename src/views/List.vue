@@ -550,7 +550,7 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border-bottom: 1px solid var(--border);
+  /* border-bottom: 1px solid var(--border); */
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }
