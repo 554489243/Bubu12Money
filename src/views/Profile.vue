@@ -26,9 +26,13 @@
           <div class="label">导出数据</div>
           <div class="arrow">›</div>
         </div>
-        <label class="import-btn">
-          <input ref="fileInput" type="file" accept=".json" @change="onFileSelected" />
-          <span class="import-btn-text">📥 导入数据（点击选择文件）</span>
+        <label class="import-label">
+          <div class="menu-item">
+            <div class="icon">📥</div>
+            <div class="label">导入数据</div>
+            <div class="arrow">›</div>
+          </div>
+          <input ref="fileInput" type="file" accept=".json" @change="onFileSelected" class="import-input-visible" />
         </label>
         <div class="menu-item" @click="handleArchive">
           <div class="icon">📦</div>
@@ -206,28 +210,26 @@ onMounted(() => {
   font-weight: 600;
 }
 
-/* 导入按钮 */
-.import-btn {
-  display: flex;
-  align-items: center;
-  padding: 14px 16px;
+/* 导入：label 包裹菜单项 + 可见文件输入 */
+.import-label {
+  display: block;
+  position: relative;
   cursor: pointer;
-  gap: 12px;
 }
-.import-btn input[type="file"] {
+.import-label .menu-item {
+  margin: 0;
+  border-radius: 0;
+}
+.import-input-visible {
   position: absolute;
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  overflow: hidden;
-  z-index: -1;
-}
-.import-btn-text {
-  font-size: 14px;
-  color: var(--text);
-}
-.import-btn:active .import-btn-text {
-  opacity: 0.6;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.01;
+  cursor: pointer;
+  font-size: 100px;
+  z-index: 10;
 }
 
 .version-tag {
