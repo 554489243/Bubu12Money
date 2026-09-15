@@ -66,25 +66,16 @@
     </div>
 
 
-    <!-- 导入弹窗 -->
-    <van-popup v-model:show="showImportDialog" position="bottom" round :style="{ height: '70%' }">
-      <div class="import-dialog">
-        <div class="import-title">导入数据</div>
-        <div class="import-desc">请粘贴之前导出的 JSON 备份内容：</div>
-        <textarea ref="pasteArea" v-model="pasteContent" class="import-textarea" placeholder='{"version":1,"records":[...]}...' @paste="onPaste"></textarea>
-        <div class="import-actions">
-          <button class="btn-cancel" @click="showImportDialog = false">取消</button>
-          <button class="btn-confirm" :disabled="!pasteContent.trim()" @click="doPasteImport">导入</button>
-        </div>
-      </div>
-    </van-popup>
+
+    <!-- 隐藏的文件输入 -->
+    <input ref="fileInput" type="file" accept=".json" class="file-input-hidden" @change="onFileSelected" />
 
     <TabBar />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { showToast, showConfirmDialog } from 'vant'
 import TabBar from '@/components/TabBar.vue'
 import { useRecordStore } from '@/stores/recordStore'
@@ -92,10 +83,7 @@ import { exportData, importData, downloadBackup, mergeData } from '@/api/backup'
 
 const recordStore = useRecordStore()
 const archivableCount = ref(0)
-
-const showImportDialog = ref(false)
-const pasteContent = ref('')
-const pasteArea = ref<HTMLTextAreaElement>()
+const fileInput = ref<HTMLInputElement>()
 
 async function refreshArchivable() {
   archivableCount.value = await recordStore.countArchivable()
@@ -130,21 +118,13 @@ async function handleExport() {
 }
 
 async function handleImport() {
-  pasteContent.value = ''
-  showImportDialog.value = true
-  await nextTick()
-  pasteArea.value?.focus()
+  fileInput.value?.click()
 }
 
-async function doPasteImport() {
-  const content = pasteContent.value?.trim()
-  if (!content) {
-    showToast('请先粘贴备份内容')
-    return
-  }
-  showImportDialog.value = false
+async function processFile(file: File) {
   try {
-    const data = JSON.parse(content)
+    const text = await file.text()
+    const data = JSON.parse(text)
     if (!data.version || !data.records) {
       showToast('无效的备份文件')
       return
@@ -160,16 +140,16 @@ async function doPasteImport() {
     setTimeout(() => location.reload(), 1500)
   } catch (e: any) {
     showToast(e.message || '导入失败')
+  } finally {
+    if (fileInput.value) fileInput.value.value = ''
   }
 }
 
-function onPaste() {
-  // 自动清理 JSON 内容（去除 markdown 代码块标记）
-  setTimeout(() => {
-    let content = pasteContent.value
-    content = content.replace(/^```json\n?/, '').replace(/\n?```$/, '')
-    pasteContent.value = content
-  }, 0)
+async function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  await processFile(file)
 }
 
 onMounted(() => {
@@ -237,70 +217,14 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-/* 导入弹窗 */
-.import-dialog {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 20px;
-}
-.import-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  text-align: center;
-  margin-bottom: 6px;
-}
-.import-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-}
-.import-textarea {
-  flex: 1;
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  font-size: 12px;
-  font-family: monospace;
-  resize: none;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 200px;
-}
-.import-textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-.import-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-.btn-cancel {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-  color: var(--text-secondary);
-  font-size: 14px;
-  cursor: pointer;
-}
-.btn-confirm {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--primary);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-confirm:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* 文件输入：PWA 兼容隐藏（保持可点击） */
+.file-input-hidden {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: auto;
 }
 </style>
