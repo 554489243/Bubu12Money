@@ -21,6 +21,7 @@
       </div>
 
       <div class="menu-section">
+        <div class="export-notice">基础版数据依赖浏览器存储，清除浏览器数据前请导出备份</div>
         <div class="menu-item" @click="handleExport">
           <div class="icon">📤</div>
           <div class="label">导出数据</div>
@@ -186,6 +187,15 @@ onMounted(() => {
 .profile-header .name { font-size: 18px; font-weight: 700; }
 .profile-header .desc { font-size: 12px; opacity: 0.8; margin-top: 4px; }
 
+.export-notice {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: #FFF8E1;
+  border-left: 3px solid #FFB74D;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
 .menu-section {
   background: var(--card);
   border-radius: var(--radius-lg);
