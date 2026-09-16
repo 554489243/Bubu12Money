@@ -183,6 +183,12 @@ class BookkeepingDB extends Dexie {
       categories: '++id, type, sort, parentId',
       books: '++id, sort, isDefault'
     })
+    this.version(7).stores({
+      records: '++id, type, categoryId, bookId, date, createdAt',
+      records_history: '++id, type, categoryId, bookId, date, createdAt',
+      categories: '++id, type, sort, parentId',
+      books: '++id, name, sort, isDefault'
+    })
   }
 
   /**

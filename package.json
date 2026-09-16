@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify/vue": "^5.0.1",
     "dayjs": "^1.11.0",
     "dexie": "^4.0.0",
     "echarts": "^5.5.0",
