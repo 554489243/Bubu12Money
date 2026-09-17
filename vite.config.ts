@@ -13,16 +13,21 @@ export default defineConfig({
         name: '记账本',
         short_name: '记账',
         description: '简单好用的个人记账工具',
+        lang: 'zh-CN',
         theme_color: '#1989fa',
         background_color: '#f5f6f8',
         display: 'standalone',
+        orientation: 'portrait',
+        // 注意：这里声明的每一个图标文件都必须真实存在于 public/，
+        // 否则国产浏览器（小米/OPPO/vivo 等）的 PWA 检测会失败，
+        // 导致「添加到桌面」退化成普通快捷方式。改完请跑 npm run icons。
         icons: [
           { src: 'icon-144.png', sizes: '144x144', type: 'image/png' },
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-256.png', sizes: '256x256', type: 'image/png' },
           { src: 'icon-384.png', sizes: '384x384', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
       workbox: {
