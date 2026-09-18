@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-verify
+vite.config.ts.timestamp-*
 .DS_Store
 *.local
 .vscode
