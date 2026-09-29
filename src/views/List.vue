@@ -10,8 +10,11 @@
     <div class="overview-card">
       <div class="overview-top">
         <div class="overview-expense">
-          <div class="label">总支出</div>
-          <div class="amount">{{ formatAmount(periodSummary.expense) }}</div>
+          <div class="label">
+            <span v-if="isCategoryFiltering" class="label-dot" :style="{ background: activeCategoryColor }"></span>
+            <span>{{ primaryLabel }}</span>
+          </div>
+          <div class="amount">{{ formatAmount(primaryAmount) }}</div>
         </div>
         <div class="period-controls">
           <div class="period-row">
@@ -27,11 +30,11 @@
         </div>
       </div>
       <div class="overview-bottom">
-        <div class="overview-income">
-          <span class="label">总收入</span>
-          <span class="value">{{ formatAmount(periodSummary.income) }}</span>
+        <div class="overview-income" :class="{ zero: secondaryIsZero }">
+          <span class="label">{{ secondaryLabel }}</span>
+          <span class="value">{{ formatAmount(secondaryAmount) }}</span>
         </div>
-        <div class="record-count">共 {{ periodFilteredRecords.length }} 笔</div>
+        <div class="record-count">共 {{ filteredRecords.length }} 笔</div>
       </div>
     </div>
 
@@ -88,8 +91,9 @@
 
       <div v-else-if="groupedRecords.length === 0" class="empty-state">
         <div class="icon">📋</div>
-        <div class="text">{{ hasActivePeriod ? '本月暂无记录' : '暂无账单记录' }}</div>
-        <button v-if="hasActivePeriod" class="empty-btn" @click="resetPeriod">查看全部</button>
+        <div class="text">{{ emptyText }}</div>
+        <button v-if="isCategoryFiltering" class="empty-btn" @click="clearCategoryFilter">清除筛选</button>
+        <button v-else-if="hasActivePeriod" class="empty-btn" @click="resetPeriod">查看全部</button>
         <button v-else class="empty-btn" @click="$router.push('/edit')">记一笔</button>
       </div>
 
@@ -249,6 +253,11 @@ function onParentClick(parentId: number | null) {
   selectedParentId.value = parentId
 }
 
+function clearCategoryFilter() {
+  filterCategoryId.value = null
+  selectedParentId.value = null
+}
+
 const bookFilteredRecords = computed(() => {
   const source: any[] = isHistorical.value ? recordStore.historyRecords : recordStore.records
   if (bookStore.isAllBooks) return source
@@ -263,18 +272,64 @@ const periodFilteredRecords = computed(() => {
   })
 })
 
-const periodSummary = computed(() => {
-  const records = periodFilteredRecords.value
-  const expense = records.filter(r => r.type === 'expense').reduce((sum: number, r: any) => sum + r.amount, 0)
-  const income = records.filter(r => r.type === 'income').reduce((sum: number, r: any) => sum + r.amount, 0)
-  return { expense, income, net: income - expense }
-})
-
+// 分类筛选口径（选中父分类时含其全部子分类）
 const filteredRecords = computed(() => {
   if (!filterCategoryId.value) return periodFilteredRecords.value
   const childIds = categoryStore.getChildCategories(filterCategoryId.value).map((c: any) => c.id!)
   const ids = [filterCategoryId.value, ...childIds]
   return periodFilteredRecords.value.filter((r: any) => ids.includes(r.categoryId))
+})
+
+// 顶部汇总 = 当前列表口径（月份 + 账本 + 分类），保证同屏只有一个口径
+const periodSummary = computed(() => {
+  const records = filteredRecords.value
+  const expense = records.filter((r: any) => r.type === 'expense').reduce((sum: number, r: any) => sum + r.amount, 0)
+  const income = records.filter((r: any) => r.type === 'income').reduce((sum: number, r: any) => sum + r.amount, 0)
+  return { expense, income, net: income - expense }
+})
+
+// ===== 分类筛选联动 =====
+const activeCategory = computed(() => {
+  if (!filterCategoryId.value) return null
+  return categoryStore.getById(filterCategoryId.value) || null
+})
+const isCategoryFiltering = computed(() => filterCategoryId.value !== null)
+
+// 主数字：选中收入类分类时让给收入，避免显示一个恒为 0 的「支出」
+const primaryType = computed<'expense' | 'income'>(() =>
+  activeCategory.value?.type === 'income' ? 'income' : 'expense'
+)
+const primaryLabel = computed(() => {
+  if (!filterCategoryId.value) return '总支出'
+  const cat = activeCategory.value
+  if (!cat) return '已筛选'
+  return `${cat.name} · ${cat.type === 'income' ? '收入' : '支出'}`
+})
+const primaryAmount = computed(() =>
+  primaryType.value === 'income' ? periodSummary.value.income : periodSummary.value.expense
+)
+const secondaryLabel = computed(() => {
+  if (!filterCategoryId.value) return '总收入'
+  return primaryType.value === 'income' ? '支出' : '收入'
+})
+const secondaryAmount = computed(() =>
+  primaryType.value === 'income' ? periodSummary.value.expense : periodSummary.value.income
+)
+const secondaryIsZero = computed(() => secondaryAmount.value === 0)
+
+// 选中分类时用该分类的颜色点亮标签小圆点，作为"正在筛选"的视觉标识
+// （分类筛选行就在卡片正下方，点「全部」即可退出，不再单独放清除按钮）
+// 注意：不要把主数字染成分类色 —— 主数字是 28px 大字，蓝底上提亮后对比度会掉到 1.7~2.5（实测），
+// 白色(3.50) 才是这块底上最可读的。分类色只用在 8px 小圆点上，不承担文字可读性。
+const activeCategoryColor = computed(() => {
+  const cat = activeCategory.value
+  if (!cat) return '#ffffff'
+  return resolveCategoryColor(cat, categoryStore.categories).bg
+})
+
+const emptyText = computed(() => {
+  if (isCategoryFiltering.value) return hasActivePeriod.value ? '该分类本月暂无记录' : '该分类暂无记录'
+  return hasActivePeriod.value ? '本月暂无记录' : '暂无账单记录'
 })
 
 const groupedRecords = computed(() => {
@@ -377,9 +432,19 @@ onMounted(async () => {
   justify-content: space-between;
 }
 .overview-expense .label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   opacity: 0.8;
   margin-bottom: 2px;
+}
+.label-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
 }
 .overview-expense .amount {
   font-size: 28px;
@@ -467,6 +532,7 @@ onMounted(async () => {
   font-weight: 600;
   color: #b7eb8f;
 }
+.overview-income.zero .value { color: rgba(255, 255, 255, 0.5); }
 .record-count {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
