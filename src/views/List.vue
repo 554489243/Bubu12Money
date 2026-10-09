@@ -22,7 +22,7 @@
             <button class="period-label" :class="{ all: !hasActivePeriod }" @click="showMonthPicker = true">
               {{ selectedYear && selectedMonth ? `${selectedYear}年${String(selectedMonth).padStart(2, '0')}月` : '全部' }}
             </button>
-            <button class="period-arrow" @click="nextMonth">›</button>
+            <button class="period-arrow" :disabled="isCurrentMonth" @click="nextMonth">›</button>
           </div>
           <div class="period-row" v-if="hasActivePeriod">
             <button class="period-reset" @click="resetPeriod">全部</button>
@@ -160,13 +160,20 @@ const isHistorical = ref(false)
 
 // 月份筛选
 const showMonthPicker = ref(false)
-const selectedYear = ref<number | null>(null)
-const selectedMonth = ref<number | null>(null)
+// 默认定位到本月（与统计页的「本月」口径对齐），点「全部」可退回全量账单
+const today = new Date()
+const selectedYear = ref<number | null>(today.getFullYear())
+const selectedMonth = ref<number | null>(today.getMonth() + 1)
 const datePickerValue = ref<string[]>([])
 const minDate = new Date(2020, 0, 1)
 const maxDate = new Date(2030, 11, 31)
 
 const hasActivePeriod = computed(() => selectedYear.value !== null && selectedMonth.value !== null)
+// 已定位到本月 → 不再允许往后翻（未来月份不会有账单）
+const isCurrentMonth = computed(() => {
+  const now = new Date()
+  return selectedYear.value === now.getFullYear() && selectedMonth.value === now.getMonth() + 1
+})
 const periodText = computed(() => {
   if (selectedYear.value && selectedMonth.value) return `${selectedYear.value}年${selectedMonth.value}月`
   return '全部账单'
@@ -190,6 +197,7 @@ function nextMonth() {
     selectedMonth.value = now.getMonth() + 1
     return
   }
+  if (isCurrentMonth.value) return
   if (selectedMonth.value === 12) { selectedYear.value++; selectedMonth.value = 1 }
   else { selectedMonth.value++ }
 }
@@ -479,6 +487,12 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 .period-arrow:active { background: rgba(255, 255, 255, 0.35); }
+.period-arrow:disabled {
+  opacity: 0.35;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: default;
+}
+.period-arrow:disabled:active { background: rgba(255, 255, 255, 0.1); }
 .period-label {
   font-size: 12px;
   font-weight: 600;
